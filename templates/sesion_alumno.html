@@ -1,0 +1,14 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Sesion Alumno
+{% endblock title %}
+
+{% block body %}
+
+   <h1>Sesion Alumno</h1>
+   <a href="{{ url_for('buscar_cita') }}">Registrar Cita</a>
+
+   <a href="{{ url_for('logout') }}">Salir</a>
+
+{% endblock %}
