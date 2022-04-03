@@ -50,9 +50,10 @@ def is_logged():
 # Registrar horario psicologo
 @app.route('/registro_horario', methods=['GET', 'POST'])
 def registrar_horario():
+    error = None
     if is_logged():
+        id_psicologo = session['usuario']['id_psicologo']
         if request.method == 'POST':
-            id_psicologo = session['usuario']['id_psicologo']
             
             fecha = request.form['fecha']
             hora = int(request.form['hora'])
@@ -61,19 +62,49 @@ def registrar_horario():
             h_fin = datetime.timedelta(hours=hora + 1)
             
             cur = mysql.connection.cursor()
+
+            # Ya existe ese horario
             cur.execute("""
-                INSERT INTO `horario` 
-                (`dia`, `h_inicio`, `h_fin`, `id_psicologo`) 
-                VALUES
-                (%s,%s,%s,%s)
+                SELECT 1
+                FROM horario h
+                WHERE h.id_psicologo = %s
+                AND h.dia = %s
+                AND h.h_inicio = %s
                 """,
-                [ fecha, h_inicio, h_fin, id_psicologo ])
-            mysql.connection.commit()
-            cur.close()
+                [id_psicologo, fecha, h_inicio]
+            )
+            validar = cur.fetchone()
+            
+            if validar is None:
+                cur.execute("""
+                    INSERT INTO `horario` 
+                    (`dia`, `h_inicio`, `h_fin`, `id_psicologo`) 
+                    VALUES
+                    (%s,%s,%s,%s)
+                    """,
+                    [ fecha, h_inicio, h_fin, id_psicologo ])
+                mysql.connection.commit()
+                flash('Se registro el horario correctamente.')
+            else:
+                error='Ya tiene un horario registrado en esa fecha y hora.'
+        
+        cur = mysql.connection.cursor()
+        cur.execute(
+            """
+            SELECT p.nombres , h.* 
+            FROM `horario` h,
+                `psicologo` p
+            WHERE h.id_psicologo = p.id_psicologo
+            AND p.id_psicologo = %s
+            """,
+            [id_psicologo]
+        )
+        resultado_horario = cur.fetchall()
+        cur.close()
 
-            flash('Se registro el horario correctamente.')
-
-        return render_template('registrar_horario.html', hora_citas=hora_citas)
+        return render_template('registrar_horario.html', hora_citas=hora_citas,
+                                                        resultado_horario=resultado_horario,
+                                                        error=error)
     else:
         return redirect(url_for('login'))
 
@@ -104,7 +135,18 @@ def registrar_cita():
                 VALUES 
                 (%s,%s,%s,%s)
                 """,
-                [ horario['dia'], horario['h_inicio'], horario['id_psicologo'], id_alumno ])
+                [ horario['dia'], horario['h_inicio'], horario['id_psicologo'], id_alumno ]
+            )
+            
+            # Cambiamos el estado del horario
+            cur.execute(
+                """
+                UPDATE `horario`
+                SET `estado` = '1'
+                WHERE `horario`.`id_horario` = %s
+                """,
+                [id_horario]
+            )
             mysql.connection.commit()
             
             flash('Se registro la cita correctamente')
@@ -134,6 +176,7 @@ def buscar_cita():
                 FROM `horario` h,
                     `psicologo` p
                 WHERE h.id_psicologo = p.id_psicologo
+                AND h.estado = 0
                 AND h.DIA = %s
                 AND h.h_inicio = %s
                 AND h.h_fin = %s
@@ -152,6 +195,7 @@ def buscar_cita():
                 FROM `horario` h,
                     `psicologo` p
                 WHERE h.id_psicologo = p.id_psicologo
+                AND h.estado = 0
             """)
             resultado_cita = cur.fetchall()
             cur.close()
