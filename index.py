@@ -11,7 +11,7 @@ app.config['MYSQL_HOST'] = 'localhost'
 app.config['MYSQL_USER'] = 'root'
 app.config['MYSQL_PASSWORD'] = ''
 # Nombre de la BD en phpmyadmin
-app.config['MYSQL_DB'] = '2021213_db_sinherencia'
+app.config['MYSQL_DB'] = 'tdp_sw_v23'
 # CURSOR
 app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 mysql = MySQL(app)
@@ -207,7 +207,81 @@ def buscar_cita():
         print('no usuario')
         return redirect(url_for('login'))
 
+# Test Psicologico
+@app.route('/test_psicologico_main', methods=['GET','POST'])
+def test_psicologico_main():
+    if is_logged():
+        return render_template('test_psicologico_main.html')
+    else:
+        print('no usuario')
+        return redirect(url_for('login'))
 
+# Test de Ansiedad
+@app.route('/test_ansiedad', methods=['GET','POST'])
+def test_ansiedad():
+    if is_logged():
+        if request.method == 'POST':
+
+            id_alumno= session['usuario']['id_alumnos']
+            # tabla alumno_escala
+            p1 = int(request.form['1'])
+            p2 = int(request.form['2'])
+            p3 = int(request.form['3'])
+            p4 = int(request.form['4'])
+            p5 = int(request.form['5'])
+            p6 = int(request.form['6'])
+            p7 = int(request.form['7'])
+
+
+            puntaje_total=p1+p2+p3+p4+p5+p6+p7
+            puntaje_total=int(puntaje_total)
+            nivel_variable="Temp"
+            desarrollo=datetime.datetime.now()
+            desarrollo=desarrollo.strftime('%Y-%m/%d')
+
+            if puntaje_total<=4:
+                nivel_variable="Leve"
+            elif puntaje_total>=5 and puntaje_total<=7:
+                nivel_variable="Moderada"
+            elif puntaje_total==8 or puntaje_total == 9:
+                nivel_variable="Severa"
+            elif puntaje_total<4:
+                nivel_variable="Sin ansiedad"
+            else:
+                nivel_variable="Extremadamente Severa"
+
+            cur = mysql.connection.cursor()
+
+            cur.execute(
+                "INSERT INTO alumno_escala (id_escala, Ddesarrolllo, puntaje, nivel_variable, id_alumnos) VALUES (%s,%s,%s,%s,%s)",
+                (1, desarrollo, puntaje_total, nivel_variable, id_alumno))
+            mysql.connection.commit()
+
+            flash("Se registró la escala correctamente.")
+
+            return redirect(url_for('test_psicologico_main'))
+        else:
+            return render_template('test_ansiedad.html')
+    else:
+        flash('No usuario')
+        return redirect(url_for('login'))
+# Test de Depresión
+@app.route('/test_depresion', methods=['GET','POST'])
+def test_depresion():
+    if is_logged():
+        return render_template('test_depresion.html')
+    else:
+        print('no usuario')
+        return redirect(url_for('login'))
+
+# Test de Estrés
+@app.route('/test_estres', methods=['GET','POST'])
+def test_estres():
+    if is_logged():
+        return render_template('test_estres.html')
+    else:
+        print('no usuario')
+        return redirect(url_for('login'))
 
 # Registro Alumno:
 @app.route('/registro_alumno', methods=['GET','POST'])
@@ -312,7 +386,6 @@ def login():
             return render_template('login.html')
     else:
         return render_template('login.html')
-
 
 @app.route('/sesion_alumno')
 def sesion_alumno():

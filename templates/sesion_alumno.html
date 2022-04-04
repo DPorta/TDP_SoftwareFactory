@@ -5,10 +5,23 @@
 {% endblock title %}
 
 {% block body %}
+    <h1>Sesión Alumno</h1>
+    <h2>Bienvenido <b>{{session["nombre"]}} {{session["apellido"]}}</b></h2>
 
-   <h1>Sesion Alumno</h1>
+    <nav>
+        <ul>
+          <li><a href="/sesion_alumno">Estado Mental</a></li>
+          <li><a href="/test_psicologico_main">Test Psicológicos</a></li>
+          <li><a href="/buscar_cita">Registrar Cita</a></li>
+          <li><a href="/sesion_alumno">Actividades</a></li>
+          <li><a href="/sesion_alumno">Editar Perfil</a></li>
+          <li><a href="/logout">Cerrar Sesión</a></li>
+        </ul>
+    </nav>
+
+   <!--
    <a href="{{ url_for('buscar_cita') }}">Registrar Cita</a>
-
    <a href="{{ url_for('logout') }}">Salir</a>
+   -->
 
 {% endblock %}
