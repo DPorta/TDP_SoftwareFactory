@@ -1,13 +1,16 @@
-{% extends "layout.html" %}
-
-{% block title %}
-    Sesion Psicologo
-{% endblock title %}
-
-{% block body %}
-    <h1>Sesion Psicologo</h1>
-    
+{% extends "layout.html" %} {% block title %} Sesion Psicologo {% endblock title
+%} {% block body %}
+<h1>Sesion Psicologo</h1>
+<ul>
+  <li>
     <a href="{{ url_for('registrar_horario') }}">Registrar horario</a>
+  </li>
+  <li>
+    <a href="{{ url_for('registrar_actividad') }}">Registrar actividad</a>
+  </li>
+  <li>
     <a href="{{ url_for('logout') }}">Salir</a>
+  </li>
+</ul>
 
 {% endblock %}

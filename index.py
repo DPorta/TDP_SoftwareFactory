@@ -2,16 +2,17 @@ import datetime
 from flask import Flask, flash, render_template, request, redirect, url_for, session
 from flask_mysqldb import MySQL
 from os import path
+#from text_classif.classification.py import predict_activity
 
-from pymysql import NULL
+#from pymysql import NULL
 
 app = Flask(__name__)
 # Conexion a sql
-app.config['MYSQL_HOST'] = 'localhost'
+app.config['MYSQL_HOST'] = '127.0.0.1'
 app.config['MYSQL_USER'] = 'root'
 app.config['MYSQL_PASSWORD'] = ''
 # Nombre de la BD en phpmyadmin
-app.config['MYSQL_DB'] = 'tdp_sw_v23'
+app.config['MYSQL_DB'] = '2021213_DB_SINHERENCIA'
 # CURSOR
 app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 mysql = MySQL(app)
@@ -47,6 +48,34 @@ def is_logged():
         return True
     return False
 
+# Registrar actividad
+## ESTO ES TEMPORAL
+## TODO: MOVER A UN ARCHIVO A PARTE
+import joblib
+
+tr = joblib.load('text_classif/tfidf.pkl')
+clf = joblib.load('text_classif/SVM.pkl')
+
+def predict_activity(activity_text):
+    value = tr.transform([activity_text])
+    return clf.predict(value)
+
+@app.route('/registrar_actividad', methods=['GET', 'POST'])
+def registrar_actividad():
+    error = None
+    if is_logged():
+        id_psicologo = session['usuario']['id_psicologo']
+        if request.method == 'POST':
+            
+            desc_actividad = request.form['desc_actividad']
+            print(desc_actividad)
+
+            print('variable:',predict_activity(desc_actividad))
+
+        return render_template('registrar_actividad.html', error=error)
+    else:
+        return redirect(url_for('login'))
+
 # Registrar horario psicologo
 @app.route('/registro_horario', methods=['GET', 'POST'])
 def registrar_horario():
@@ -78,11 +107,11 @@ def registrar_horario():
             if validar is None:
                 cur.execute("""
                     INSERT INTO `horario` 
-                    (`dia`, `h_inicio`, `h_fin`, `id_psicologo`) 
+                    (`dia`, `h_inicio`, `h_fin`, `id_psicologo`, `estado`) 
                     VALUES
-                    (%s,%s,%s,%s)
+                    (%s,%s,%s,%s, %s)
                     """,
-                    [ fecha, h_inicio, h_fin, id_psicologo ])
+                    [ fecha, h_inicio, h_fin, id_psicologo, '0'])
                 mysql.connection.commit()
                 flash('Se registro el horario correctamente.')
             else:

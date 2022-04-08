@@ -1,0 +1,46 @@
+{% extends "layout.html" %} {% block title %} Registro de Horario {% endblock
+title %} {% block body %} {% with messages = get_flashed_messages() %} {% if
+messages %} {% for message in messages %}
+<div class="alert alert-success alert-dismissible fade show" role="alert">
+  {{ message }}
+  <button
+    type="button"
+    class="btn-close"
+    data-bs-dismiss="alert"
+    aria-label="Close"
+  ></button>
+</div>
+{% endfor %} {% endif %} {% endwith %} {% if error %}
+<div class="alert alert-danger alert-dismissible fade show" role="alert">
+  {{ error }}
+  <button
+    type="button"
+    class="btn-close"
+    data-bs-dismiss="alert"
+    aria-label="Close"
+  ></button>
+</div>
+{% endif %}
+
+<h1>Registro de Actividades</h1>
+<form action="{{ url_for('registrar_actividad') }}" method="POST">
+  <div class="form-group">
+    <label for="start">Nombre Actividad:</label>
+    <input type="text" name="nom_actividad" placeholder="nombre actividad" />
+  </div>
+
+  <div class="form-group">
+    <label>Descripcion:</label>
+    <textarea
+      name="desc_actividad"
+      rows="4"
+      cols="50"
+      placeholder="descripcion"
+    ></textarea>
+  </div>
+
+  <div class="form-group">
+    <button class="boton">Registrar</button>
+  </div>
+</form>
+{% endblock %}
