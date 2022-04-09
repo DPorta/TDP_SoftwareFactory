@@ -2,23 +2,32 @@ import datetime
 from flask import Flask, flash, render_template, request, redirect, url_for, session
 from flask_mysqldb import MySQL
 from os import path
+import dash
+from dash import dcc
+from dash import html
+import plotly.express as px
+import pandas as pd
+
 #from text_classif.classification.py import predict_activity
 
 #from pymysql import NULL
 
 app = Flask(__name__)
 # Conexion a sql
-app.config['MYSQL_HOST'] = '127.0.0.1'
+app.config['MYSQL_HOST'] = 'localhost'
 app.config['MYSQL_USER'] = 'root'
 app.config['MYSQL_PASSWORD'] = ''
 # Nombre de la BD en phpmyadmin
-app.config['MYSQL_DB'] = '2021213_DB_SINHERENCIA'
+app.config['MYSQL_DB'] = 'tdp_sw_s3'
 # CURSOR
 app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 mysql = MySQL(app)
 
 # Configuracion
 app.secret_key = '123456'
+
+
+
 
 ## Variables
 hora_citas = [
@@ -137,7 +146,6 @@ def registrar_horario():
     else:
         return redirect(url_for('login'))
 
-
 # Registrar cita alumno
 @app.route('/registro_cita', methods=['POST'])
 def registrar_cita():
@@ -177,10 +185,10 @@ def registrar_cita():
                 [id_horario]
             )
             mysql.connection.commit()
-            
-            flash('Se registro la cita correctamente')
+
+            print('Se registro la cita correctamente')
         else:
-            flash('No existe el horario seleccionado')
+            print('No existe el horario seleccionado')
         
         cur.close()
         return redirect(url_for('buscar_cita'))
@@ -268,7 +276,7 @@ def test_ansiedad():
             desarrollo=datetime.datetime.now()
             desarrollo=desarrollo.strftime('%Y-%m/%d')
 
-            if puntaje_total<=4:
+            if puntaje_total==4:
                 nivel_variable="Leve"
             elif puntaje_total>=5 and puntaje_total<=7:
                 nivel_variable="Moderada"
@@ -286,13 +294,13 @@ def test_ansiedad():
                 (1, desarrollo, puntaje_total, nivel_variable, id_alumno))
             mysql.connection.commit()
 
-            flash("Se registró la escala correctamente.")
+            print("Se registró la escala correctamente.")
 
-            return redirect(url_for('test_psicologico_main'))
+            return redirect(url_for('sesion_alumno'))
         else:
             return render_template('test_ansiedad.html')
     else:
-        flash('No usuario')
+        print('No usuario')
         return redirect(url_for('login'))
 # Test de Depresión
 @app.route('/test_depresion', methods=['GET','POST'])
@@ -335,13 +343,13 @@ def test_depresion():
                 (2, desarrollo, puntaje_total, nivel_variable, id_alumno))
             mysql.connection.commit()
 
-            flash("Se registró la escala correctamente.")
+            print("Se registró la escala correctamente.")
 
-            return redirect(url_for('test_psicologico_main'))
+            return redirect(url_for('sesion_alumno'))
         else:
             return render_template('test_depresion.html')
     else:
-        flash('No usuario')
+        print('No usuario')
         return redirect(url_for('login'))
 
 # Test de Estrés
@@ -385,13 +393,13 @@ def test_estres():
                 (3, desarrollo, puntaje_total, nivel_variable, id_alumno))
             mysql.connection.commit()
 
-            flash("Se registró la escala correctamente.")
+            print("Se registró la escala correctamente.")
 
-            return redirect(url_for('test_psicologico_main'))
+            return redirect(url_for('sesion_alumno'))
         else:
             return render_template('test_estres.html')
     else:
-        flash('No usuario')
+        print('No usuario')
         return redirect(url_for('login'))
 
 # Registro Alumno:
@@ -425,6 +433,79 @@ def registro_alumno():
     else:
         return render_template('registro_alumno.html')
 
+################################################################################################################################################
+#CUALQUIER ERROR ELIMINAR LO QUE ESTE DENTRO DE LOS ASTERISCOS
+#Estado Mental
+@app.route('/estado_mental', methods=['GET','POST'])
+def estado_mental():
+    if is_logged():
+        cur = mysql.connection.cursor()
+        id_alumno = session['usuario']['id_alumnos']
+
+        cur.execute("SELECT * FROM alumno_escala WHERE id_alumnos = %s", (id_alumno,))
+        alumno = cur.fetchall()
+
+        df=pd.DataFrame(alumno, columns=['id_alumno_escala','id_escala', 'Ddesarrolllo', 'puntaje','nivel_variable','id_alumnos'])
+        
+        dash_app=dash.Dash(server=app,name="Dashboard", url_base_pathname="/hola/")
+        dash_app.layout=html.Div(
+                children=[
+                    html.H1(children="Gráfico de barras"),
+                    html.Div(children="Dash: Graficos"),
+                    dcc.Graph(
+                        id="Grafico",
+                        figure=px.scatter(df, x="id_alumno_escala", y="Ddesarrolllo",
+                                            size="puntaje", color="id_escala", hover_name="nivel_variable",
+                                            log_x=True, size_max=60)               
+                    ),
+                    html.A(children="Volver", href="/estado_mental"),
+                    html.A(children="Cerrar Sesión", href="/logout")
+                ]
+            )
+
+
+        return render_template('estado_mental.html')
+    else:
+        print('no usuario')
+        return redirect(url_for('login'))
+
+#DASHBOARD
+def create_dash_app(dash_app):
+    df=pd.read_csv("test.csv")
+    dash_app=dash.Dash(server=app,name="Dashboard", url_base_pathname="/hola2/")
+    dash_app.layout=html.Div(
+                children=[
+                    html.H1(children="Gráfico de barras"),
+                    html.Div(children="Dash: Graficos"),
+                    dcc.Graph(
+                        id="Grafico",
+                        figure=px.bar(df, x="nivel_variable", y="Ddesarrolllo", barmode="group")                
+                    ),
+                    html.A(children="Cerrar Sesión", href="/logout")
+                ]
+            )
+    return dash_app
+#DashB 2
+def create_dash_app2(dash_app):
+    df=pd.read_csv("test.csv")
+    dash_app=dash.Dash(server=app,name="Dashboard", url_base_pathname="/hola3/")
+    dash_app.layout=html.Div(
+                children=[
+                    html.H1(children="Gráfico de barras"),
+                    html.Div(children="Dash: Graficos"),
+                    dcc.Graph(
+                        id="Grafico",
+                        figure=px.bar(df, x="nivel_variable", y="puntaje", barmode="group")               
+                    ),
+                    html.A(children="Cerrar Sesión", href="/logout")
+                ]
+            )
+    return dash_app
+
+create_dash_app(app)
+create_dash_app2(app)
+
+################################################################################################################################################
 # registro psicologo:
 @app.route('/registro_psi', methods=['GET','POST'])
 def registro_psi():
@@ -451,12 +532,6 @@ def registro_psi():
         return redirect(url_for('login'))
     else:
         return render_template('registro_psi.html')
-
-@app.route('/layout', methods=["GET", "POST"])
-def layout():
-    # Cerrar sesión (Falta Solucionar)
-    #session.clear()
-    return render_template('login.html')
 
 @app.route('/logout')
 def logout():
@@ -485,12 +560,18 @@ def login():
         
         cur.close()
 
+        #Datos de Saludo
+
         if alumno is not None and contrasena == alumno["contrasena"]:
             session["usuario"] = alumno
+            session["nombre"] = alumno['nombres']
+            session["apellido"] =alumno['apellidos']
             return redirect(url_for('sesion_alumno'))
 
         elif psicologo is not None and contrasena == psicologo["contrasena"]:
             session["usuario"] = psicologo
+            session["nombre"] = psicologo['nombres']
+            session["apellido"] =psicologo['apellidos']
             return redirect(url_for('sesion_psicologo'))
 
         else:
@@ -511,4 +592,4 @@ def sesion_psicologo():
     return redirect(url_for('login'))
 
 if __name__ == '__main__':
-    app.run(port=3000, debug=True)
+    app.run(port=3000, debug=False)

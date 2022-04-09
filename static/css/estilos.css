@@ -1,0 +1,25 @@
+body {
+    background: #91e4fb;
+}
+.login-form {
+  position: absolute;
+  top: 40%;
+  left: 40%;
+  transform: translate(-50%, -50%);
+  width: 400px;
+}
+.p-questions-login, .form_titulo-login {
+ text-align: center;
+}
+
+.boton-login {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+p .form-input-login{
+  display: block;
+  margin-left: auto;
+}
+

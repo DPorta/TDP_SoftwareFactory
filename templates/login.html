@@ -5,27 +5,36 @@
 {% endblock title %}
 
 {% block body %}
-
+<div class="login-form">
     <form class= "form" action="/login" method="POST">
 
-        <h1 class="form_titulo">Login</h1><br>
+        <h1 class="form_titulo-login">Bienvenido!</h1><br>
 
-        <div class="form-group">
-            <label>Email:</label>
-            <input type="email" class="form-input" name="email">
+        <div class="form-group-login">
+            <label class="form-input-login">Email:
+            <input type="email" class="form-input-login2" placeholder="email@example.com" name="email"></label>
         </div>
-        
-        <div class="form-group">
-            <label>Contraseña:</label>
-            <input type="password" class="form-input" name="contrasena">
+        <br>
+        <div class="form-group-login">
+            <label class="form-input-login">Contraseña:
+            <input type="password" class="form-input-login2" placeholder="*********" name="contrasena"></label>
         </div>
-
-        <div class="form-group">
-            <button class="boton">Login</button>
-            <button class="boton"><a href="/registro_alumno">Registro Alumno</a></button>
-            <button class="boton"><a href="/registro_psi">Registro Psicólogo</a></button>
+        <br>
+        <div class="form-group-questions">
+            <button class="boton-login">Iniciar Sesión</button>
+            <p class="p-questions-login">
+                ¿No tienes una cuenta?
+                <br>
+                Deseo crear una como
+                <a href="/registro_alumno">Alumno</a>
+                o
+                <a href="/registro_psi">Psicólogo</a>
+            </p>
         </div>
 
     </form>
+
+</div>
+
 
 {% endblock %}

@@ -5,23 +5,71 @@
 {% endblock title %}
 
 {% block body %}
-    <h1>Sesión Alumno</h1>
-    <h2>Bienvenido <b>{{session["nombre"]}} {{session["apellido"]}}</b></h2>
 
-    <nav>
-        <ul>
-          <li><a href="/sesion_alumno">Estado Mental</a></li>
-          <li><a href="/test_psicologico_main">Test Psicológicos</a></li>
-          <li><a href="/buscar_cita">Registrar Cita</a></li>
-          <li><a href="/sesion_alumno">Actividades</a></li>
-          <li><a href="/sesion_alumno">Editar Perfil</a></li>
-          <li><a href="/logout">Cerrar Sesión</a></li>
-        </ul>
-    </nav>
+    <h1>Bienvenido alumno <b>{{session["nombre"]}} {{session["apellido"]}}</b></h1>
 
-   <!--
-   <a href="{{ url_for('buscar_cita') }}">Registrar Cita</a>
-   <a href="{{ url_for('logout') }}">Salir</a>
-   -->
+    <div class="row">
+      <div class="col-4">
+        <div class="list-group" id="list-tab" role="tablist">
+            <a class="list-group-item list-group-item-action active" data-bs-toggle="list" href="#estado_mental_show" role="tab">Estado Mental</a>
+            <a class="list-group-item dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-expanded="false">Test Psicológicos</a>
+                <ul class="dropdown-menu">
+                  <li><a class="list-group-item list-group-item-action" data-bs-toggle="list" href="#test_ansiedad_show" role="tab">Test de Ansiedad</a></li>
+                  <li><a class="list-group-item list-group-item-action" data-bs-toggle="list" href="#test_depresion_show" role="tab" >Test de Depresión</a></li>
+                  <li><a class="list-group-item list-group-item-action" data-bs-toggle="list" href="#test_estres_show" role="tab" >Test de Estrés</a></li>
+                </ul>
+            <a class="list-group-item list-group-item-action" data-bs-toggle="list" href="#registrar_cita_show" role="tab">Registrar Cita</a>
+            <a class="list-group-item list-group-item-action" data-bs-toggle="list" href="#actividades_show" role="tab">Actividades</a>
+            <hr>
+            <a class="list-group-item list-group-item-action" data-bs-toggle="list" href="#editar_perfil" role="tab" >Editar Perfil</a>
+            <a class="list-group-item list-group-item-action" href="/logout" >Cerrar Sesión</a>
+
+        </div>
+      </div>
+      <div class="col-8">
+          <div class="tab-content" id="nav-tabContent">
+            <div class="tab-pane fade show active" id="estado_mental_show" role="tabpanel" aria-labelledby="list-home-list">
+                Estado Mental
+            </div>
+            <div class="tab-pane fade" id="test_ansiedad_show" role="tabpanel" >
+                 TA
+            </div>
+            <div class="tab-pane fade" id="test_depresion_show" role="tabpanel" >
+                         TD
+            </div>
+            <div class="tab-pane fade" id="test_estres_show" role="tabpanel" >
+                         TE
+            </div>
+            <div class="tab-pane fade" id="registrar_cita_show" role="tabpanel" >
+                Registrar Cita
+            </div>
+            <div class="tab-pane fade" id="actividades_show" role="tabpanel" >
+                Actividades
+            </div>
+            <div class="tab-pane fade" id="editar_perfil" role="tabpanel" >
+                Editar Perfil
+            </div>
+          </div>
+      </div>
+    </div>
+
+<hr>
+
+     <ul class="nav flex-column">
+          <li class="nav-item"><a class="nav-link" href="/estado_mental">Estado Mental</a></li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-expanded="false">Test Psicológicos</a>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="/test_ansiedad">Test de Ansiedad</a></li>
+              <li><a class="dropdown-item" href="/test_depresion">Test de Depresión</a></li>
+              <li><a class="dropdown-item" href="/test_estres">Test de Estrés</a></li>
+            </ul>
+          </li>
+          <li class="nav-item"><a class="nav-link" href="/buscar_cita">Registrar Cita</a></li>
+          <li class="nav-item"><a class="nav-link" href="/sesion_alumno">Actividades</a></li>
+          <li class="nav-item"><a class="nav-link" href="/sesion_alumno">Editar Perfil</a></li>
+          <li class="nav-item"><a class="nav-link" href="/logout">Cerrar Sesión</a></li>
+     </ul>
 
 {% endblock %}
+
