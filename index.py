@@ -14,20 +14,17 @@ import pandas as pd
 
 app = Flask(__name__)
 # Conexion a sql
-app.config['MYSQL_HOST'] = 'localhost'
+app.config['MYSQL_HOST'] = '127.0.0.1'
 app.config['MYSQL_USER'] = 'root'
 app.config['MYSQL_PASSWORD'] = ''
 # Nombre de la BD en phpmyadmin
-app.config['MYSQL_DB'] = 'tdp_sw_s3'
+app.config['MYSQL_DB'] = '2021213_DB_SINHERENCIA'
 # CURSOR
 app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 mysql = MySQL(app)
 
 # Configuracion
 app.secret_key = '123456'
-
-
-
 
 ## Variables
 hora_citas = [
@@ -57,6 +54,33 @@ def is_logged():
         return True
     return False
 
+# Listar citas del psicologo
+@app.route('/listar_citas', methods=['GET'])
+def listar_citas():
+    error = None
+    if is_logged():
+        id_psicologo = session['usuario']['id_psicologo']
+        
+        cur = mysql.connection.cursor()
+        cur.execute(
+            """
+            SELECT r.*, a.nombres, a.apellidos
+            FROM `reserva_cita` r,
+                 `alumno` a
+            WHERE r.`id_alumno` = a.`id_alumnos`
+            AND r.`id_psicologo` = %s
+            """,
+            [id_psicologo]
+        )
+        lista_citas = cur.fetchall()
+        cur.close()
+        return render_template('listar_citas.html',
+                                error=error,
+                                lista_citas=lista_citas)
+    else:
+        return redirect(url_for('login'))
+
+
 # Registrar actividad
 ## ESTO ES TEMPORAL
 ## TODO: MOVER A UN ARCHIVO A PARTE
@@ -69,19 +93,46 @@ def predict_activity(activity_text):
     value = tr.transform([activity_text])
     return clf.predict(value)
 
+# Registrar actividades por parte del psicologo
 @app.route('/registrar_actividad', methods=['GET', 'POST'])
 def registrar_actividad():
     error = None
     if is_logged():
         id_psicologo = session['usuario']['id_psicologo']
+        cur = mysql.connection.cursor()
         if request.method == 'POST':
             
+            nom_actividad = request.form['nom_actividad']
             desc_actividad = request.form['desc_actividad']
-            print(desc_actividad)
+            variable = predict_activity(desc_actividad)[0]
 
-            print('variable:',predict_activity(desc_actividad))
+            print(nom_actividad, desc_actividad)
+            print('variable:',variable)
 
-        return render_template('registrar_actividad.html', error=error)
+            cur.execute("""
+                    INSERT INTO `actividades` 
+                    (`nom_actividad`, `descripcion`, `id_psicologo`, `variable`) 
+                    VALUES
+                    (%s,%s,%s,%s)
+                    """,
+                    [ nom_actividad, desc_actividad, id_psicologo, variable])
+            mysql.connection.commit()
+            flash('Se registro la actividad correctamente.')
+
+        ## Listamos las actividades registradas por el psicologo.
+        cur.execute(
+            """
+            SELECT *
+            FROM `actividades`
+            WHERE id_psicologo = %s
+            """,
+            [id_psicologo]
+        )
+        lista_actividades = cur.fetchall()
+        cur.close()
+        return render_template('registrar_actividad.html',
+                                error=error,
+                                lista_actividades=lista_actividades)
     else:
         return redirect(url_for('login'))
 
@@ -91,6 +142,8 @@ def registrar_horario():
     error = None
     if is_logged():
         id_psicologo = session['usuario']['id_psicologo']
+        cur = mysql.connection.cursor()
+        
         if request.method == 'POST':
             
             fecha = request.form['fecha']
@@ -99,7 +152,7 @@ def registrar_horario():
             h_inicio = datetime.timedelta(hours=hora)
             h_fin = datetime.timedelta(hours=hora + 1)
             
-            cur = mysql.connection.cursor()
+            #cur = mysql.connection.cursor()
 
             # Ya existe ese horario
             cur.execute("""
@@ -126,7 +179,6 @@ def registrar_horario():
             else:
                 error='Ya tiene un horario registrado en esa fecha y hora.'
         
-        cur = mysql.connection.cursor()
         cur.execute(
             """
             SELECT p.nombres , h.* 
@@ -186,9 +238,9 @@ def registrar_cita():
             )
             mysql.connection.commit()
 
-            print('Se registro la cita correctamente')
+            flash('Se registro la cita correctamente')
         else:
-            print('No existe el horario seleccionado')
+            flash('No existe el horario seleccionado')
         
         cur.close()
         return redirect(url_for('buscar_cita'))
@@ -592,4 +644,4 @@ def sesion_psicologo():
     return redirect(url_for('login'))
 
 if __name__ == '__main__':
-    app.run(port=3000, debug=False)
+    app.run(port=3000, debug=True)
