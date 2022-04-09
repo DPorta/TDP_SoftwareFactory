@@ -1,6 +1,6 @@
-{% extends "layout.html" %} {% block title %} Registro de Horario {% endblock
-title %} {% block body %} {% with messages = get_flashed_messages() %} {% if
-messages %} {% for message in messages %}
+{% extends "layout_psicologo.html" %} {% block title %} Registro de Horario {%
+endblock title %} {% block content %} {% with messages = get_flashed_messages()
+%} {% if messages %} {% for message in messages %}
 <div class="alert alert-success alert-dismissible fade show" role="alert">
   {{ message }}
   <button

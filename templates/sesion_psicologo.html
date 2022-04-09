@@ -1,19 +1,28 @@
-{% extends "layout.html" %} {% block title %} Sesion Psicologo {% endblock title
-%} {% block body %}
-<h1>Sesion Psicologo</h1>
-<ul>
-  <li>
-    <a href="{{ url_for('registrar_horario') }}">Registrar horario</a>
-  </li>
-  <li>
-    <a href="{{ url_for('registrar_actividad') }}">Registrar actividad</a>
-  </li>
-  <li>
-    <a href="{{ url_for('listar_citas') }}">Listar citas</a>
-  </li>
-  <li>
-    <a href="{{ url_for('logout') }}">Salir</a>
-  </li>
-</ul>
+{% extends "layout_psicologo.html" %} {% block title %} Sesion Psicologo {%
+endblock title %} {% block content %}
+
+<h1>
+  Bienvenido Psicologo <b>{{session["nombre"] + ', ' + session["apellido"]}}</b>
+</h1>
+<!-- <div class="row"></div>
+  <ul class="col-4 nav nav-pills flex-column">
+    <li class="nav-item">
+      <a class="nav-link" href="{{ url_for('registrar_horario') }}">Registrar horario</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="{{ url_for('registrar_actividad') }}">Registrar actividad</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="{{ url_for('listar_citas') }}">Listar citas</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="{{ url_for('logout') }}">Salir</a>
+    </li>
+  </ul>
+  <div class="col-10">
+    {% block psico %}
+    {% endblock %}
+  </div>
+</div> -->
 
 {% endblock %}
