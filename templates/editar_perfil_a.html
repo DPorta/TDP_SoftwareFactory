@@ -1,14 +1,31 @@
-{% extends "layout.html" %}
+{% extends "layout_alumno.html" %}
 
 {% block title %}
     Registro Alumno
 {% endblock title %}
 
-{% block body %}
+{% block content %}
+    <div class="info_alumno">
+        <table>
+            <tr>
+                <td>Nombre(s): <b>{{session["nombre"]}}</b></td>
+                <td>Apellido(s): <b>{{session["apellido"]}}</b></td>
+                <td>Email: <b>{{session["email"]}}</b></td>
+                <td>Sede: <b>{{session["sede"]}}</b></td>
+            </tr>
+            <tr>
+                <td>Carrera: <b>{{session["carrera"]}}</b></td>
+                <td>Edad: <b>{{session["edad"]}}</b></td>
+                <td>Ciclo: <b>{{session["ciclo"]}}</b></td>
+                <td>Sexo: <b>{{session["sexo"]}}</b></td>
+            </tr>
+        </table>    
+    </div>
+
     <div class="registro_alumno">
-        <form class=form action="/registro_alumno" method="POST">
+        <form class=form action="/editar_perfil_a" method="POST">
     
-            <h1 class="form_titulo">Registro Alumno</h1><br>
+            <h3 class="form_titulo">Ingrese todos los datos a actualizar:</h3><br>
     
             <div class="form-group">
                 <label>Nombres:</label>
@@ -83,7 +100,7 @@
             </div>
     
             <div class="form-group">
-                <button class="boton">Registrar</button>
+                <button class="boton">Actualizar</button>
             </div>
     
         </form>

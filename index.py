@@ -14,11 +14,11 @@ import pandas as pd
 
 app = Flask(__name__)
 # Conexion a sql
-app.config['MYSQL_HOST'] = '127.0.0.1'
+app.config['MYSQL_HOST'] = 'localhost'
 app.config['MYSQL_USER'] = 'root'
 app.config['MYSQL_PASSWORD'] = ''
 # Nombre de la BD en phpmyadmin
-app.config['MYSQL_DB'] = '2021213_DB_SINHERENCIA'
+app.config['MYSQL_DB'] = 'tdp_sw_v5'
 # CURSOR
 app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 mysql = MySQL(app)
@@ -67,7 +67,7 @@ def listar_citas():
             SELECT r.*, a.nombres, a.apellidos
             FROM `reserva_cita` r,
                  `alumno` a
-            WHERE r.`id_alumno` = a.`id_alumnos`
+            WHERE r.`id_alumno` = a.`id_alumno`
             AND r.`id_psicologo` = %s
             """,
             [id_psicologo]
@@ -202,7 +202,7 @@ def registrar_horario():
 @app.route('/registro_cita', methods=['POST'])
 def registrar_cita():
     if is_logged():
-        id_alumno = session['usuario']['id_alumnos']
+        id_alumno = session['usuario']['id_alumno']
         
         # obtenemos los datos del horario
         id_horario = request.form['id_horario']
@@ -311,7 +311,7 @@ def test_ansiedad():
     if is_logged():
         if request.method == 'POST':
 
-            id_alumno= session['usuario']['id_alumnos']
+            id_alumno= session['usuario']['id_alumno']
             # tabla alumno_escala
             p1 = int(request.form['1'])
             p2 = int(request.form['2'])
@@ -342,7 +342,7 @@ def test_ansiedad():
             cur = mysql.connection.cursor()
 
             cur.execute(
-                "INSERT INTO alumno_escala (id_escala, Ddesarrolllo, puntaje, nivel_variable, id_alumnos) VALUES (%s,%s,%s,%s,%s)",
+                "INSERT INTO alumno_escala (id_escala, Ddesarrollo, puntaje, nivel_variable, id_alumno) VALUES (%s,%s,%s,%s,%s)",
                 (1, desarrollo, puntaje_total, nivel_variable, id_alumno))
             mysql.connection.commit()
 
@@ -360,7 +360,7 @@ def test_depresion():
     if is_logged():
         if request.method == 'POST':
 
-            id_alumno= session['usuario']['id_alumnos']
+            id_alumno= session['usuario']['id_alumno']
             # tabla alumno_escala
             p1 = int(request.form['1'])
             p2 = int(request.form['2'])
@@ -391,7 +391,7 @@ def test_depresion():
             cur = mysql.connection.cursor()
 
             cur.execute(
-                "INSERT INTO alumno_escala (id_escala, Ddesarrolllo, puntaje, nivel_variable, id_alumnos) VALUES (%s,%s,%s,%s,%s)",
+                "INSERT INTO alumno_escala (id_escala, Ddesarrollo, puntaje, nivel_variable, id_alumno) VALUES (%s,%s,%s,%s,%s)",
                 (2, desarrollo, puntaje_total, nivel_variable, id_alumno))
             mysql.connection.commit()
 
@@ -410,7 +410,7 @@ def test_estres():
     if is_logged():
         if request.method == 'POST':
 
-            id_alumno= session['usuario']['id_alumnos']
+            id_alumno= session['usuario']['id_alumno']
             # tabla alumno_escala
             p1 = int(request.form['1'])
             p2 = int(request.form['2'])
@@ -441,7 +441,7 @@ def test_estres():
             cur = mysql.connection.cursor()
 
             cur.execute(
-                "INSERT INTO alumno_escala (id_escala, Ddesarrolllo, puntaje, nivel_variable, id_alumnos) VALUES (%s,%s,%s,%s,%s)",
+                "INSERT INTO alumno_escala (id_escala, Ddesarrollo, puntaje, nivel_variable, id_alumno) VALUES (%s,%s,%s,%s,%s)",
                 (3, desarrollo, puntaje_total, nivel_variable, id_alumno))
             mysql.connection.commit()
 
@@ -485,6 +485,40 @@ def registro_alumno():
     else:
         return render_template('registro_alumno.html')
 
+# Editar Perfil Alumno
+@app.route('/editar_perfil_a', methods=['GET','POST'])
+def editar_perfil_a():
+    if is_logged():
+        if request.method == 'POST':
+
+            # ID del alumno
+            id_alumno= session['usuario']['id_alumno']
+
+            # tabla persona
+            nombres = request.form['nombre']
+            apellidos = request.form['apellidos']
+            email = request.form['email']
+            sede = request.form['sede']
+            contrasena = request.form['contrasena']
+            # tabla alumno
+            carrera = request.form['carrera']
+            sexo = request.form['sexo']
+            ciclo = request.form['ciclo']
+            edad = request.form['edad']
+
+            #Para BD sin herencia
+            cur = mysql.connection.cursor()
+            cur.execute(
+                "UPDATE alumno set carrera=%s, edad=%s, ciclo=%s, nombres=%s, apellidos=%s, email=%s, contrasena=%s, sexo=%s, sede=%s WHERE id_alumno=%s",
+                (carrera, edad, ciclo, nombres, apellidos, email, contrasena, sexo, sede, id_alumno))
+            mysql.connection.commit()
+            return redirect(url_for('editar_perfil_a'))
+        else:
+            return render_template('editar_perfil_a.html')
+    else:
+        print("No usuario")
+        return redirect(url_for('login'))
+
 ################################################################################################################################################
 #CUALQUIER ERROR ELIMINAR LO QUE ESTE DENTRO DE LOS ASTERISCOS
 #Estado Mental
@@ -492,12 +526,12 @@ def registro_alumno():
 def estado_mental():
     if is_logged():
         cur = mysql.connection.cursor()
-        id_alumno = session['usuario']['id_alumnos']
+        id_alumno = session['usuario']['id_alumno']
 
-        cur.execute("SELECT * FROM alumno_escala WHERE id_alumnos = %s", (id_alumno,))
+        cur.execute("SELECT * FROM alumno_escala WHERE id_alumno = %s", (id_alumno,))
         alumno = cur.fetchall()
 
-        df=pd.DataFrame(alumno, columns=['id_alumno_escala','id_escala', 'Ddesarrolllo', 'puntaje','nivel_variable','id_alumnos'])
+        df=pd.DataFrame(alumno, columns=['id_alumno_escala','id_escala', 'Ddesarrollo', 'puntaje','nivel_variable','id_alumno'])
         
         dash_app=dash.Dash(server=app,name="Dashboard", url_base_pathname="/hola/")
         dash_app.layout=html.Div(
@@ -506,7 +540,7 @@ def estado_mental():
                     html.Div(children="Dash: Graficos"),
                     dcc.Graph(
                         id="Grafico",
-                        figure=px.scatter(df, x="id_alumno_escala", y="Ddesarrolllo",
+                        figure=px.scatter(df, x="id_alumno_escala", y="Ddesarrollo",
                                             size="puntaje", color="id_escala", hover_name="nivel_variable",
                                             log_x=True, size_max=60)               
                     ),
@@ -531,7 +565,7 @@ def create_dash_app(dash_app):
                     html.Div(children="Dash: Graficos"),
                     dcc.Graph(
                         id="Grafico",
-                        figure=px.bar(df, x="nivel_variable", y="Ddesarrolllo", barmode="group")                
+                        figure=px.bar(df, x="nivel_variable", y="Ddesarrollo", barmode="group")                
                     ),
                     html.A(children="Cerrar Sesión", href="/logout")
                 ]
@@ -598,10 +632,6 @@ def login():
 
         cur = mysql.connection.cursor()
 
-        # Para BD con herencia
-        # cur.execute("SELECT * FROM persona WHERE email= %s", (email,))
-        # Para BD sin herencia
-
         # Alumno
         cur.execute("SELECT * FROM alumno WHERE email= %s", (email,))
         alumno = cur.fetchone()
@@ -617,7 +647,14 @@ def login():
         if alumno is not None and contrasena == alumno["contrasena"]:
             session["usuario"] = alumno
             session["nombre"] = alumno['nombres']
-            session["apellido"] =alumno['apellidos']
+            session["apellido"] = alumno['apellidos']
+            session["carrera"] = alumno['carrera']
+            session["edad"] = alumno['edad']
+            session["ciclo"] = alumno['ciclo']
+            session["email"] = alumno['email']
+            session["contrasena"] = alumno['contrasena']
+            session["sexo"] = alumno['sexo']
+            session["sede"] = alumno['sede']
             return redirect(url_for('sesion_alumno'))
 
         elif psicologo is not None and contrasena == psicologo["contrasena"]:
@@ -644,4 +681,4 @@ def sesion_psicologo():
     return redirect(url_for('login'))
 
 if __name__ == '__main__':
-    app.run(port=3000, debug=True)
+    app.run(port=3000, debug=False)
