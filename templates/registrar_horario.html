@@ -30,7 +30,7 @@ get_flashed_messages() %} {% if messages %} {% for message in messages %}
       type="date"
       id="start"
       name="fecha"
-      value="2022-03-27"
+      value="{{ current_date.strftime('%Y-%m-%d') }}"
       min="2022-01-01"
       max="2022-12-31"
     />

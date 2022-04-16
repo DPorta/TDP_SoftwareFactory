@@ -14,11 +14,11 @@ import pandas as pd
 
 app = Flask(__name__)
 # Conexion a sql
-app.config['MYSQL_HOST'] = 'localhost'
+app.config['MYSQL_HOST'] = '127.0.0.1'
 app.config['MYSQL_USER'] = 'root'
 app.config['MYSQL_PASSWORD'] = ''
 # Nombre de la BD en phpmyadmin
-app.config['MYSQL_DB'] = 'tdp_sw_v5'
+app.config['MYSQL_DB'] = '2021213_DB_SINHERENCIA'
 # CURSOR
 app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 mysql = MySQL(app)
@@ -27,6 +27,7 @@ mysql = MySQL(app)
 app.secret_key = '123456'
 
 ## Variables
+current_date = datetime.datetime.now()
 hora_citas = [
     ('7:00 - 8:00', 7),
     ('8:00 - 9:00', 8),
@@ -42,6 +43,8 @@ hora_citas = [
     ('20:00 - 21:00', 20),
     ('21:00 - 22:00', 21)
 ]
+## Variables para buscar actividades
+variables = ['Todos','Estrés','Depresión','Ansiedad']
 
 # HOME (Página de Inicio)
 @app.route('/')
@@ -81,6 +84,31 @@ def listar_citas():
         return redirect(url_for('login'))
 
 
+
+# Eliminar actividad
+@app.route('/eliminar_actividad', methods=['POST'])
+def eliminar_actividad():
+    error = None
+    if is_logged():
+        if request.method == 'POST':
+            
+            cur = mysql.connection.cursor()
+            
+            id_actividad = request.form['id_actividad']
+            cur.execute("""
+                    DELETE FROM actividades WHERE `actividades`.`id_actividad` = %s
+                    """,
+                    [id_actividad])
+            
+            mysql.connection.commit()
+            cur.close()
+            
+            flash('Se elimino la actividad correctamente.')
+
+        return redirect(url_for('registrar_actividad'))
+    else:
+        return redirect(url_for('login'))
+
 # Registrar actividad
 ## ESTO ES TEMPORAL
 ## TODO: MOVER A UN ARCHIVO A PARTE
@@ -106,16 +134,22 @@ def registrar_actividad():
             desc_actividad = request.form['desc_actividad']
             variable = predict_activity(desc_actividad)[0]
 
+            fecha = request.form.get('fecha')
+            check_fecha = request.form.get('check_fecha')
+
+
             print(nom_actividad, desc_actividad)
             print('variable:',variable)
-
+            print('fecha', fecha)
+            print('check_fecha', check_fecha)
+            
             cur.execute("""
                     INSERT INTO `actividades` 
-                    (`nom_actividad`, `descripcion`, `id_psicologo`, `variable`) 
+                    (`nom_actividad`, `descripcion`, `id_psicologo`, `variable`, `fecha`) 
                     VALUES
-                    (%s,%s,%s,%s)
+                    (%s,%s,%s,%s, %s)
                     """,
-                    [ nom_actividad, desc_actividad, id_psicologo, variable])
+                    [ nom_actividad, desc_actividad, id_psicologo, variable, fecha])
             mysql.connection.commit()
             flash('Se registro la actividad correctamente.')
 
@@ -132,7 +166,8 @@ def registrar_actividad():
         cur.close()
         return render_template('registrar_actividad.html',
                                 error=error,
-                                lista_actividades=lista_actividades)
+                                lista_actividades=lista_actividades,
+                                current_date=current_date)
     else:
         return redirect(url_for('login'))
 
@@ -152,8 +187,6 @@ def registrar_horario():
             h_inicio = datetime.timedelta(hours=hora)
             h_fin = datetime.timedelta(hours=hora + 1)
             
-            #cur = mysql.connection.cursor()
-
             # Ya existe ese horario
             cur.execute("""
                 SELECT 1
@@ -194,7 +227,8 @@ def registrar_horario():
 
         return render_template('registrar_horario.html', hora_citas=hora_citas,
                                                         resultado_horario=resultado_horario,
-                                                        error=error)
+                                                        error=error,
+                                                        current_date=current_date)
     else:
         return redirect(url_for('login'))
 
@@ -273,10 +307,7 @@ def buscar_cita():
             [fecha, h_inicio, h_fin])
             resultado_cita = cur.fetchall()
             cur.close()
-            print(resultado_cita)
-            print(len(resultado_cita), 'elementos.')
-            for r in resultado_cita:
-                print(r['id_horario'])
+
         else:
             cur = mysql.connection.cursor()
             cur.execute("""
@@ -295,6 +326,89 @@ def buscar_cita():
     else:
         print('no usuario')
         return redirect(url_for('login'))
+
+# Buscar actividades
+@app.route('/buscar_actividad', methods=['GET','POST'])
+def buscar_actividad():
+    if is_logged():
+        actividades = []
+        if request.method == 'POST':
+            variable = request.form['variable']
+
+            cur = mysql.connection.cursor()
+
+            cur.execute("""
+                SELECT * 
+                FROM `actividades` a
+                WHERE (a.`variable` = %s OR 'Todos' = %s) 
+            """, 
+            [variable, variable])
+            actividades = cur.fetchall()
+
+            cur.close()
+
+        else:
+            cur = mysql.connection.cursor()
+            cur.execute("""
+                SELECT * 
+                FROM `actividades`
+            """)
+            actividades = cur.fetchall()
+            cur.close()
+        return render_template('buscar_actividad.html', variables=variables,
+                                                        actividades=actividades)
+    else:
+        return redirect(url_for('login'))
+
+
+# Visualizar resultados de test y recomendacion de actividades
+@app.route('/visualizar_resultado/<id_alumno_escala>', methods=['GET'])
+def visualizar_resultado(id_alumno_escala):
+    if is_logged():
+        print('id_alumno_escala:', id_alumno_escala)
+        actividades = None
+        cur = mysql.connection.cursor()
+
+        # Obtenemos el resultado del alumno de la tabla alumno escala
+        cur.execute("""
+            SELECT ae.`puntaje`, 
+                    e.`id_escala`, 
+                    e.`nom_variable`,
+                    ae.`nivel_variable`
+            FROM `alumno_escala` ae,
+                 `escala` e
+            WHERE e.`id_escala` = ae.`id_escala`
+            AND ae.`id_alumno_escala` = %s
+        """,
+        [id_alumno_escala])
+        resultado_test = cur.fetchone()
+
+        puntaje = resultado_test['puntaje']
+        id_escala = resultado_test['id_escala']
+        nom_variable = resultado_test['nom_variable']
+
+        print(puntaje, type(puntaje))
+        print(id_escala, type(id_escala))
+        print(nom_variable, type(nom_variable))
+
+        if (id_escala == 1 and puntaje >=4) or \
+            (id_escala == 2 and puntaje >=5) or \
+            (id_escala == 3 and puntaje >=8):
+            cur.execute("""
+                SELECT * 
+                FROM `actividades` a
+                WHERE a.`variable` = %s
+            """, 
+            [nom_variable])
+            actividades = cur.fetchall()
+
+        cur.close()
+
+        return render_template('resultado_test.html', actividades=actividades,
+                                                        resultado_test=resultado_test)
+    else:
+        return redirect(url_for('login'))
+
 
 # Test Psicologico
 @app.route('/test_psicologico_main', methods=['GET','POST'])
@@ -326,7 +440,7 @@ def test_ansiedad():
             puntaje_total=int(puntaje_total)
             nivel_variable="Temp"
             desarrollo=datetime.datetime.now()
-            desarrollo=desarrollo.strftime('%Y-%m/%d')
+            desarrollo=desarrollo.strftime('%Y-%m-%d')
 
             if puntaje_total==4:
                 nivel_variable="Leve"
@@ -346,9 +460,11 @@ def test_ansiedad():
                 (1, desarrollo, puntaje_total, nivel_variable, id_alumno))
             mysql.connection.commit()
 
-            print("Se registró la escala correctamente.")
+            ruta = url_for('visualizar_resultado', id_alumno_escala=cur.lastrowid)
 
-            return redirect(url_for('sesion_alumno'))
+            print("Se registró la escala correctamente.")
+            cur.close()
+            return redirect(ruta)
         else:
             return render_template('test_ansiedad.html')
     else:
@@ -375,7 +491,7 @@ def test_depresion():
             puntaje_total=int(puntaje_total)
             nivel_variable="Temp"
             desarrollo=datetime.datetime.now()
-            desarrollo=desarrollo.strftime('%Y-%m/%d')
+            desarrollo=desarrollo.strftime('%Y-%m-%d')
 
             if puntaje_total==5 or puntaje_total == 6:
                 nivel_variable="Leve"
@@ -394,10 +510,12 @@ def test_depresion():
                 "INSERT INTO alumno_escala (id_escala, Ddesarrollo, puntaje, nivel_variable, id_alumno) VALUES (%s,%s,%s,%s,%s)",
                 (2, desarrollo, puntaje_total, nivel_variable, id_alumno))
             mysql.connection.commit()
+            
+            ruta = url_for('visualizar_resultado', id_alumno_escala=cur.lastrowid)
 
             print("Se registró la escala correctamente.")
-
-            return redirect(url_for('sesion_alumno'))
+            cur.close()
+            return redirect(ruta)
         else:
             return render_template('test_depresion.html')
     else:
@@ -425,7 +543,7 @@ def test_estres():
             puntaje_total=int(puntaje_total)
             nivel_variable="Temp"
             desarrollo=datetime.datetime.now()
-            desarrollo=desarrollo.strftime('%Y-%m/%d')
+            desarrollo=desarrollo.strftime("%Y-%m-%d")
 
             if puntaje_total==8 or puntaje_total == 9:
                 nivel_variable="Leve"
@@ -445,14 +563,17 @@ def test_estres():
                 (3, desarrollo, puntaje_total, nivel_variable, id_alumno))
             mysql.connection.commit()
 
-            print("Se registró la escala correctamente.")
+            ruta = url_for('visualizar_resultado', id_alumno_escala=cur.lastrowid)
 
-            return redirect(url_for('sesion_alumno'))
+            print("Se registró la escala correctamente.")
+            cur.close()
+            return redirect(ruta)
         else:
             return render_template('test_estres.html')
     else:
         print('No usuario')
         return redirect(url_for('login'))
+
 
 # Registro Alumno:
 @app.route('/registro_alumno', methods=['GET','POST'])
@@ -681,4 +802,4 @@ def sesion_psicologo():
     return redirect(url_for('login'))
 
 if __name__ == '__main__':
-    app.run(port=3000, debug=False)
+    app.run(port=3000, debug=True)
