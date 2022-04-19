@@ -1,43 +1,62 @@
-{% extends "layout.html" %}
-
-{% block title %}
-    Login
-{% endblock title %}
-
-{% block body %}
-<div class="login-form">
-    <form class= "form" action="/login" method="POST">
-
-        <h1 class="form_titulo-login">Bienvenido!</h1><br>
-
-        <div class="form-group-login">
-            <label class="form-input-login">Email:
-            <input type="email" class="form-input-login2" placeholder="email@example.com" name="email"></label>
-        </div>
-        <br>
-        <div class="form-group-login">
-            <label class="form-input-login">Contraseña:
-            <input type="password" class="form-input-login2" placeholder="*********" name="contrasena"></label>
-        </div>
-        <br>
-        <div class="form-group-questions">
-            <button class="boton-login">Iniciar Sesión</button>
-            <p class="p-questions-login">
-                ¿No tienes una cuenta?
-                <br>
-                Deseo crear una como
-                <a href="/registro_alumno">Alumno</a>
-                o
-                <a href="/registro_psi">Psicólogo</a>
-            </p>
-        </div>
-
-    </form>
-    <div class="imagen_login">
-        <img src="https://media.discordapp.net/attachments/878429267229290537/964639623995342878/unknown.png" alt="Imagen Login" width="400px" height="250px">
-    </div>
-
+{% extends "layout.html" %} {% block title %} Login {% endblock title %} {%
+block body %} {% if error %}
+<div class="alert alert-danger alert-dismissible fade show" role="alert">
+  {{ error }}
+  <button
+    type="button"
+    class="btn-close"
+    data-bs-dismiss="alert"
+    aria-label="Close"
+  ></button>
 </div>
+{% endif %}
+<div class="login-form">
+  <form class="form" action="/login" method="POST">
+    <h1 class="form_titulo-login">Bienvenido!</h1>
+    <br />
 
+    <div class="form-group-login">
+      <label class="form-input-login"
+        >Email:
+        <input
+          type="email"
+          class="form-input-login2"
+          placeholder="email@example.com"
+          name="email"
+      /></label>
+    </div>
+    <br />
+    <div class="form-group-login">
+      <label class="form-input-login"
+        >Contraseña:
+        <input
+          type="password"
+          class="form-input-login2"
+          placeholder="*********"
+          name="contrasena"
+      /></label>
+    </div>
+    <br />
+    <div class="form-group-questions">
+      <button class="boton-login">Iniciar Sesión</button>
+      <p class="p-questions-login">
+        ¿No tienes una cuenta?
+        <br />
+        Deseo crear una como
+        <a href="/registro_alumno">Alumno</a>
+        o
+        <a href="/registro_psi">Psicólogo</a>
+      </p>
+    </div>
+  </form>
+  <div class="imagen_login">
+    <img
+      src="https://media.discordapp.net/attachments/878429267229290537/964639623995342878/unknown.png"
+      alt="Imagen Login"
+      width="400px"
+      height="250px"
+    />
+  </div>
+</div>
 
 {% endblock %}

@@ -20,11 +20,11 @@ from sklearn.manifold import locally_linear_embedding
 
 app = Flask(__name__)
 # Conexion a sql
-app.config['MYSQL_HOST'] = 'localhost'
+app.config['MYSQL_HOST'] = '127.0.0.1'
 app.config['MYSQL_USER'] = 'root'
 app.config['MYSQL_PASSWORD'] = ''
 # Nombre de la BD en phpmyadmin
-app.config['MYSQL_DB'] = 'tdp_sw_v5'
+app.config['MYSQL_DB'] = '2021213_DB_SINHERENCIA'
 # CURSOR
 app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 mysql = MySQL(app)
@@ -35,6 +35,7 @@ app.secret_key = '123456'
 ## Variables
 current_date = datetime.datetime.now()
 hora_citas = [
+    ('', -1),
     ('7:00 - 8:00', 7),
     ('8:00 - 9:00', 8),
     ('9:00 - 10:00', 9),
@@ -290,45 +291,54 @@ def registrar_cita():
 # Buscar y Listar cita
 @app.route('/buscar_cita', methods=['GET','POST'])
 def buscar_cita():
+    error=None
     if is_logged():
         resultado_cita = []
         if request.method == 'POST':
             fecha = request.form['fecha']
             hora = int(request.form['hora'])
-            
-            h_inicio = datetime.timedelta(hours=hora)
-            h_fin = datetime.timedelta(hours=hora + 1)
 
-            cur = mysql.connection.cursor()
-            cur.execute("""
-                SELECT p.nombres , h.* 
-                FROM `horario` h,
-                    `psicologo` p
-                WHERE h.id_psicologo = p.id_psicologo
-                AND h.estado = 0
-                AND h.DIA = %s
-                AND h.h_inicio = %s
-                AND h.h_fin = %s
-            """, 
-            [fecha, h_inicio, h_fin])
-            resultado_cita = cur.fetchall()
-            cur.close()
+            if hora == -1 or not fecha:
+                error="Complete los campos necesarios para aplicar el filtro, por favor."
+            else:
+                h_inicio = datetime.timedelta(hours=hora)
+                h_fin = datetime.timedelta(hours=hora + 1)
 
-        else:
-            cur = mysql.connection.cursor()
-            cur.execute("""
-                SELECT p.nombres , h.* 
-                FROM `horario` h,
-                    `psicologo` p
-                WHERE h.id_psicologo = p.id_psicologo
-                AND h.estado = 0
-            """)
-            resultado_cita = cur.fetchall()
-            cur.close()
+                cur = mysql.connection.cursor()
+                cur.execute("""
+                    SELECT p.nombres , h.* 
+                    FROM `horario` h,
+                        `psicologo` p
+                    WHERE h.id_psicologo = p.id_psicologo
+                    AND h.estado = 0
+                    AND h.DIA = %s
+                    AND h.h_inicio = %s
+                    AND h.h_fin = %s
+                """, 
+                [fecha, h_inicio, h_fin])
+                resultado_cita = cur.fetchall()
+                cur.close()
+                return render_template('buscar_cita.html', 
+                                hora_citas=hora_citas, 
+                                resultado_cita=resultado_cita,
+                                error=error)
+
+        
+        cur = mysql.connection.cursor()
+        cur.execute("""
+            SELECT p.nombres , h.* 
+            FROM `horario` h,
+                `psicologo` p
+            WHERE h.id_psicologo = p.id_psicologo
+            AND h.estado = 0
+        """)
+        resultado_cita = cur.fetchall()
+        cur.close()
 
         return render_template('buscar_cita.html', 
                                 hora_citas=hora_citas, 
-                                resultado_cita=resultado_cita)
+                                resultado_cita=resultado_cita,
+                                error=error)
     else:
         print('no usuario')
         return redirect(url_for('login'))
@@ -853,47 +863,50 @@ def logout():
 
 @app.route('/login', methods=["GET", "POST"])
 def login():
+    error = None
     if request.method == 'POST':
         email = request.form['email']
         contrasena = request.form['contrasena']
 
-        cur = mysql.connection.cursor()
+        if not email or not contrasena:
+            error = "Complete los campos necesarios por favor."
+        else:    
+            cur = mysql.connection.cursor()
 
-        # Alumno
-        cur.execute("SELECT * FROM alumno WHERE email= %s", (email,))
-        alumno = cur.fetchone()
-        
-        # Psicologo
-        cur.execute("SELECT * FROM psicologo WHERE email= %s", (email,))
-        psicologo = cur.fetchone()
-        
-        cur.close()
+            # Alumno
+            cur.execute("SELECT * FROM alumno WHERE email= %s", (email,))
+            alumno = cur.fetchone()
+            
+            # Psicologo
+            cur.execute("SELECT * FROM psicologo WHERE email= %s", (email,))
+            psicologo = cur.fetchone()
+            
+            cur.close()
 
-        #Datos de Saludo
+            #Datos de Saludo
 
-        if alumno is not None and contrasena == alumno["contrasena"]:
-            session["usuario"] = alumno
-            session["nombre"] = alumno['nombres']
-            session["apellido"] = alumno['apellidos']
-            session["carrera"] = alumno['carrera']
-            session["edad"] = alumno['edad']
-            session["ciclo"] = alumno['ciclo']
-            session["email"] = alumno['email']
-            session["contrasena"] = alumno['contrasena']
-            session["sexo"] = alumno['sexo']
-            session["sede"] = alumno['sede']
-            return redirect(url_for('sesion_alumno'))
+            if alumno is not None and contrasena == alumno["contrasena"]:
+                session["usuario"] = alumno
+                session["nombre"] = alumno['nombres']
+                session["apellido"] = alumno['apellidos']
+                session["carrera"] = alumno['carrera']
+                session["edad"] = alumno['edad']
+                session["ciclo"] = alumno['ciclo']
+                session["email"] = alumno['email']
+                session["contrasena"] = alumno['contrasena']
+                session["sexo"] = alumno['sexo']
+                session["sede"] = alumno['sede']
+                return redirect(url_for('sesion_alumno'))
 
-        elif psicologo is not None and contrasena == psicologo["contrasena"]:
-            session["usuario"] = psicologo
-            session["nombre"] = psicologo['nombres']
-            session["apellido"] =psicologo['apellidos']
-            return redirect(url_for('sesion_psicologo'))
+            elif psicologo is not None and contrasena == psicologo["contrasena"]:
+                session["usuario"] = psicologo
+                session["nombre"] = psicologo['nombres']
+                session["apellido"] =psicologo['apellidos']
+                return redirect(url_for('sesion_psicologo'))
+            else:
+                error="usuario o contraseña incorrectos. Intentelo de nuevo."
 
-        else:
-            return render_template('login.html')
-    else:
-        return render_template('login.html')
+    return render_template('login.html', error=error)
 
 @app.route('/sesion_alumno')
 def sesion_alumno():
