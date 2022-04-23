@@ -49,5 +49,49 @@ p .form-input-login{
 }
 
 
+/*Estado Mental Alumno*/
+.estado_mental_alumno{
+  width: 80%;
+  height: 30%;
+  background: white;
+ }
+.estado_mental_alumno h3{
+  text-align: center;
+  margin-top: 20px;
+}
+.estado_mental_alumno img{
+
+  width: 350px;
+  height: 200px;
+  float: left;
+  margin-right: 10px;
+  
+}
+.estado_mental_alumno p{
+  font-size: 18px;
+  margin-top: 30px;
+}
+/*Sesion Psicologo*/
+.sp_pie, .sp_line{
+  width: 80%;
+  height: 30%;
+  background: white;
+ }
+.sp_pie h3, .sp_line h3{
+  text-align: center;
+  margin-top: 20px;
+}
+.sp_pie img, .sp_line img{
+
+  width: 350px;
+  height: 200px;
+  float: left;
+  margin-right: 10px;
+  
+}
+.sp_pie p, .sp_line p{
+  font-size: 18px;
+  margin-top: 30px;
+}
 
 

@@ -1,3 +1,4 @@
+from cProfile import label
 import datetime
 from posixpath import defpath
 import xdrlib
@@ -20,11 +21,11 @@ from sklearn.manifold import locally_linear_embedding
 
 app = Flask(__name__)
 # Conexion a sql
-app.config['MYSQL_HOST'] = '127.0.0.1'
+app.config['MYSQL_HOST'] = 'localhost'
 app.config['MYSQL_USER'] = 'root'
 app.config['MYSQL_PASSWORD'] = ''
 # Nombre de la BD en phpmyadmin
-app.config['MYSQL_DB'] = '2021213_DB_SINHERENCIA'
+app.config['MYSQL_DB'] = 'tdp_sw_s5'
 # CURSOR
 app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 mysql = MySQL(app)
@@ -459,15 +460,15 @@ def test_ansiedad():
             desarrollo=desarrollo.strftime('%Y-%m-%d')
 
             if puntaje_total==4:
-                nivel_variable="Leve"
+                nivel_variable="Ansiedad Leve"
             elif puntaje_total>=5 and puntaje_total<=7:
-                nivel_variable="Moderada"
+                nivel_variable="Ansiedad Moderada"
             elif puntaje_total==8 or puntaje_total == 9:
-                nivel_variable="Severa"
+                nivel_variable="Ansiedad Severa"
             elif puntaje_total<4:
                 nivel_variable="Sin ansiedad"
             else:
-                nivel_variable="Extremadamente Severa"
+                nivel_variable="Ansiedad Extremadamente Severa"
 
             cur = mysql.connection.cursor()
 
@@ -510,15 +511,15 @@ def test_depresion():
             desarrollo=desarrollo.strftime('%Y-%m-%d')
 
             if puntaje_total==5 or puntaje_total == 6:
-                nivel_variable="Leve"
+                nivel_variable="Depresión Leve"
             elif puntaje_total>=7 and puntaje_total<=10:
-                nivel_variable="Moderada"
+                nivel_variable="Depresión Moderada"
             elif puntaje_total>=11 and puntaje_total <= 13:
-                nivel_variable="Severa"
+                nivel_variable="Depresión Severa"
             elif puntaje_total<=4:
                 nivel_variable="Sin depresión"
             else:
-                nivel_variable="Extremadamente Severa"
+                nivel_variable="Depresión Extremadamente Severa"
 
             cur = mysql.connection.cursor()
 
@@ -562,15 +563,15 @@ def test_estres():
             desarrollo=desarrollo.strftime("%Y-%m-%d")
 
             if puntaje_total==8 or puntaje_total == 9:
-                nivel_variable="Leve"
+                nivel_variable="Estrés Leve"
             elif puntaje_total>=10 and puntaje_total<=12:
-                nivel_variable="Moderada"
+                nivel_variable="Estrés Moderada"
             elif puntaje_total>=13 and puntaje_total <= 16:
-                nivel_variable="Severa"
+                nivel_variable="Estrés Severa"
             elif puntaje_total<=7:
                 nivel_variable="Sin estrés"
             else:
-                nivel_variable="Extremadamente Severa"
+                nivel_variable="Estrés Extremadamente Severa"
 
             cur = mysql.connection.cursor()
 
@@ -659,7 +660,6 @@ def editar_perfil_a():
 ################################################################################################################################################
 #CUALQUIER ERROR ELIMINAR LO QUE ESTE DENTRO DE LOS ASTERISCOS
 #Estado Mental
-cont=1
 @app.route('/estado_mental/', methods=['GET','POST'])
 def estado_mental():
     if is_logged():
@@ -670,29 +670,66 @@ def estado_mental():
         alumno = cur.fetchall()
 
         global df
-        df=pd.DataFrame(alumno, columns=['id_alumno_escala','id_escala', 'Ddesarrollo', 'puntaje','nivel_variable','id_alumno'])
-
-        global cont
-        if cont==1:
-            create_dash_app(app,df)
-            cont+=1            
+        df=pd.DataFrame(alumno, columns=['id_alumno_escala','id_escala', 'Ddesarrollo', 'puntaje','nivel_variable','id_alumno'])       
 
         return render_template('estado_mental.html')
     else:
-        print('no usuario')
         return redirect(url_for('login'))
 
-#DASHBOARD
-def create_dash_app(app,df):
-
-    #df=pd.read_csv("test.csv")
-    dash_app=dash.Dash(server=app,name="Dashboard", url_base_pathname="/graf_barra_alumno/")
-    dash_app.layout=html.Div(
+#DASHBOARD PSICOLOGO
+#PIE
+dash_app=dash.Dash(server=app,name="Dashboard", url_base_pathname="/graf_psi_pie/")
+dash_app.layout=html.Div(
                children=[
-                   html.H1(children="Gráfico de barras"),
-                   html.P(children="Selecciona la escala"),
+                   html.H1(children="Gráfico Circular o Pie"),
+                   html.H3('Seleccione el mes para ver su distribución'),
                    dcc.Dropdown(
-                       id="tipo_escala_dropdown",
+                    id="pie_dropdown",
+                    options=[
+                        {'label': 'Enero', 'value':1},
+                        {'label': 'Febrero', 'value':2},
+                        {'label': 'Marzo', 'value':3},
+                        {'label': 'Abril', 'value':4},
+                        {'label': 'Mayo', 'value':5},
+                        {'label': 'Junio', 'value':6},
+                        {'label': 'Julio', 'value':7},
+                        {'label': 'Agosto', 'value':8},
+                        {'label': 'Septiembre', 'value':9},
+                        {'label': 'Octubre', 'value':10},
+                        {'label': 'Noviembre', 'value':11},
+                        {'label': 'Diciembre', 'value':12}
+                    ],
+                    value=1
+                   ),
+                   dcc.Graph(
+                       id="graf-pie",
+                       figure={}             
+                   ),
+                   html.A(children="Volver", href="/sesion_psicologo"),
+               ], className="main-div"
+           )
+@dash_app.callback(
+    Output('graf-pie', component_property='figure'),
+    Input('pie_dropdown', component_property='value')
+)
+def update_graf_pie(value):
+    
+    global dfp3
+    df_meses=dfp3[dfp3['Meses']==value]
+    figure=px.pie(df_meses, names="Variable", values="Total", labels={'id_escala':'Variables'})
+    
+    return figure
+    
+
+#LINE GRAPH
+
+dash_app3=dash.Dash(server=app,name="Dashboard", url_base_pathname="/graf_psi_line/")
+dash_app3.layout=html.Div(
+            children=[
+                html.H1(children="Gráfico de Línea"),
+                html.H3('Seleccione el nombre de variable para ver el gráfico lineal'),
+                dcc.Dropdown(
+                    id="line_dropdown",
                        options=[
                            {'label': 'Ansiedad', 'value':1},
                            {'label': 'Depresión', 'value':2},
@@ -700,96 +737,32 @@ def create_dash_app(app,df):
                        ],
                        value=1
                    ),
-                   dcc.Graph(
-                       id="graf-barra-alumno",
-                       figure=px.bar(df, x="nivel_variable", y="puntaje", barmode="group")
-                                    
-                   ),
-                   html.A(children="Volver", href="/estado_mental/"),
-                   html.A(children="Cerrar Sesión", href="/logout")
-               ], className="main-div"
-           )
-    return dash_app
-
-def create_dash_app_psi_pie(app,df):
-    dfa=df[df['id_escala']==1]
-    dfd=df[df['id_escala']==2]
-    dfe=df[df['id_escala']==3]
-    dash_app=dash.Dash(server=app,name="Dashboard", url_base_pathname="/graf_psi_pie/")
-    dash_app.layout=html.Div(
-               children=[
-                   html.H1(children="Gráfico de Pie"),
-                   html.H3('Porcentaje de alumnos con Ansiedad'),
-                   dcc.Graph(
-                       id="graf-pie-ans",
-                       figure=px.pie(dfa, names="nivel_variable", values="Total" )
-                                    
-                   ),
-                   html.H3('Porcentaje de alumnos con Depresión'),
-                   dcc.Graph(
-                       id="graf-pie-ans",
-                       figure=px.pie(dfd, names="nivel_variable", values="Total" )
-                                    
-                   ),
-                   html.H3('Porcentaje de alumnos con Estrés'),
-                   dcc.Graph(
-                       id="graf-pie-ans",
-                       figure=px.pie(dfe, names="nivel_variable", values="Total" )
-                                    
-                   ),
-                   html.A(children="Volver", href="/sesion_psicologo"),
-                   html.A(children="Cerrar Sesión", href="/logout")
-               ], className="main-div"
-           )
-    return dash_app
-
-def create_dash_app_psi_line(app,df):
-    dfa=df[df['id_escala']==1]
-    dfd=df[df['id_escala']==2]
-    dfe=df[df['id_escala']==3]
-    dash_app=dash.Dash(server=app,name="Dashboard", url_base_pathname="/graf_psi_line/")
-    dash_app.layout=html.Div(
-               children=[
-                   html.H1(children="Gráfico de Línea"),
-                   html.H3('Total de alumnos con Ansiedad'),
-                   dcc.Graph(
-                       id="graf-line-ans",
-                       figure=px.line(dfa, x="nivel_variable", y="Total" )
-                                    
-                   ),
-                   html.H3('Total de alumnos con Depresión'),
-                   dcc.Graph(
-                       id="graf-line-ans",
-                       figure=px.line(dfd, x="nivel_variable", y="Total" )
-                                    
-                   ),
-                   html.H3('Total de alumnos con Estrés'),
-                   dcc.Graph(
-                       id="graf-line-ans",
-                       figure=px.line(dfe, x="nivel_variable", y="Total" )
-                                    
-                   ),
-                   html.H3('Total de alumnos Combinado'),
-                   dcc.Graph(
-                       id="graf-line-ans",
-                       figure=px.line(df, x="nivel_variable", y="Total", color="id_escala" )
-                                    
-                   ),
-                   html.A(children="Volver", href="/sesion_psicologo"),
-                   html.A(children="Cerrar Sesión", href="/logout")
-               ], className="main-div"
-           )
-    return dash_app
+                dcc.Graph(
+                    id="graf-line",
+                    figure={}
+                                 
+                ),
+                html.A(children="Volver", href="/sesion_psicologo"),
+            ], className="main-div"
+        )
+@dash_app3.callback(
+    Output('graf-line', component_property='figure'),
+    Input('line_dropdown', component_property='value')
+)
+def update_graf_line(value):
+    global dfp1
+    ndw=dfp1[dfp1['id_escala']==value]
+    figure=px.line(dfp1, x="nivel_variable", y="Total", labels={'nivel_variable':'Nivel de Variable'}, color='Variable' )
+    return figure
 
 
 #######################################################################
-#CODIGO QUE DEBERIA FUNCIONAR PERO NO FUNCIONA
-#df=pd.read_csv("test.csv")
-dash_app2=dash.Dash(server=app,name="Dashboard", url_base_pathname="/test/")
+#DASHBOARD ALUMNO
+dash_app2=dash.Dash(server=app,name="Dashboard", url_base_pathname="/graf_barra_alumno/")
 dash_app2.layout=html.Div(
                children=[
                    html.H1(children="Gráfico de barras"),
-                   html.P(children="Selecciona la escala"),
+                   html.H3(children="Selecciona el nombre de la variable sobre la cual desea ves sus datos"),
                    dcc.Dropdown(
                        id="tipo_escala_dropdown",
                        options=[
@@ -804,7 +777,6 @@ dash_app2.layout=html.Div(
                        figure={}              
                    ),
                    html.A(children="Volver", href="/estado_mental/"),
-                   html.A(children="Cerrar Sesión", href="/logout")
                ], className="main-div"
            )
 @dash_app2.callback(
@@ -813,19 +785,12 @@ dash_app2.layout=html.Div(
 )
 def update_graf_barra_alumno(value):
     global df
-    if value==1:
-        ndw=df[df['id_escala']==1]
-        figure=px.bar(ndw, x="nivel_variable", y="puntaje", barmode="group")
-        print(ndw)
-    elif value==2:
-        ndw=df[df['id_escala']==2]
-        figure=px.bar(ndw, x="nivel_variable", y="puntaje", barmode="group")
-        print(ndw)
-    else:
-        #ndw=df[df['id_escala']==3]
-        figure=px.bar(df, x="nivel_variable", y="puntaje", barmode="group")
-        print(df)
-    
+
+    ndw=df[df['id_escala']==value]
+
+    figure=px.bar(ndw, x="nivel_variable", y="puntaje", color="nivel_variable", 
+                labels={'nivel_variable':'Nivel de Variable', 'puntaje':'Puntaje Obtenido'})
+
     return figure
 
 ################################################################################################################################################
@@ -896,7 +861,7 @@ def login():
                 session["contrasena"] = alumno['contrasena']
                 session["sexo"] = alumno['sexo']
                 session["sede"] = alumno['sede']
-                return redirect(url_for('sesion_alumno'))
+                return redirect(url_for('estado_mental'))
 
             elif psicologo is not None and contrasena == psicologo["contrasena"]:
                 session["usuario"] = psicologo
@@ -908,11 +873,6 @@ def login():
 
     return render_template('login.html', error=error)
 
-@app.route('/sesion_alumno')
-def sesion_alumno():
-    if is_logged():
-        return render_template('sesion_alumno.html')
-    return redirect(url_for('login'))
 
 @app.route('/sesion_psicologo')
 def sesion_psicologo():
@@ -920,23 +880,29 @@ def sesion_psicologo():
         cur = mysql.connection.cursor()
         id_psi = session['usuario']['id_psicologo']
 
+        #PARA CONTAR EL TOTAL POR NIVEL DE VARIABLE
         cur.execute("""
-        SELECT id_escala, Ddesarrollo, puntaje, id_alumno, nivel_variable, COUNT(nivel_variable) as Total
-        FROM alumno_escala
-        GROUP BY nivel_variable
+        SELECT a.id_escala, a.Ddesarrollo, a.puntaje, a.id_alumno, a.nivel_variable, COUNT(a.nivel_variable) as Total, e.nom_variable as Variable
+        FROM ALUMNO_ESCALA AS a JOIN escala AS e ON a.id_escala = e.id_escala
+        GROUP BY a.nivel_variable
         """)
-        alumno = cur.fetchall()
-        print(alumno)
+        total_nivel_variable = cur.fetchall()
 
-        dfp=pd.DataFrame(alumno, columns=['id_escala', 'Ddesarrollo', 'puntaje','id_alumno','nivel_variable', 'Total'])
+        global dfp1
+        dfp1=pd.DataFrame(total_nivel_variable, columns=['id_escala', 'Ddesarrollo', 'puntaje','id_alumno','nivel_variable', 'Total', 'Variable'])
+
+        #TOTAL DE ALUMNO_ESCALA
+        cur.execute("""SELECT a.id_escala, a.Ddesarrollo, a.puntaje, a.id_alumno, a.nivel_variable, e.nom_variable AS Variable,
+         EXTRACT(month FROM a.Ddesarrollo) AS Meses, 
+         COUNT(a.id_escala) AS Total 
+         FROM ALUMNO_ESCALA AS a JOIN escala AS e ON a.id_escala = e.id_escala
+         GROUP BY a.id_escala, Meses""")
+        datos_totales=cur.fetchall()
+        global dfp3
+        dfp3=pd.DataFrame(datos_totales, columns=['id_escala', 'Ddesarrollo', 'puntaje','id_alumno','nivel_variable', 'Variable', 'Meses', 'Total'])
         
-        global cont
-        if cont==1:
-            create_dash_app_psi_pie(app,dfp)
-            create_dash_app_psi_line(app,dfp)
-            cont+=1 
         return render_template('sesion_psicologo.html')
     return redirect(url_for('login'))
 
 if __name__ == '__main__':
-    app.run(port=3000, debug=False)
+    app.run(port=3000, debug=True)
