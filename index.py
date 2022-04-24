@@ -21,11 +21,14 @@ from sklearn.manifold import locally_linear_embedding
 
 app = Flask(__name__)
 # Conexion a sql
-app.config['MYSQL_HOST'] = 'localhost'
+app.config['MYSQL_HOST'] = '127.0.0.1'
+#app.config['MYSQL_HOST'] = 'localhost'
+
 app.config['MYSQL_USER'] = 'root'
 app.config['MYSQL_PASSWORD'] = ''
 # Nombre de la BD en phpmyadmin
-app.config['MYSQL_DB'] = 'tdp_sw_s5'
+app.config['MYSQL_DB'] = '2021213_DB_SINHERENCIA'
+#app.config['MYSQL_DB'] = 'tdp_sw_s5'
 # CURSOR
 app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 mysql = MySQL(app)
@@ -883,7 +886,7 @@ def sesion_psicologo():
         #PARA CONTAR EL TOTAL POR NIVEL DE VARIABLE
         cur.execute("""
         SELECT a.id_escala, a.Ddesarrollo, a.puntaje, a.id_alumno, a.nivel_variable, COUNT(a.nivel_variable) as Total, e.nom_variable as Variable
-        FROM ALUMNO_ESCALA AS a JOIN escala AS e ON a.id_escala = e.id_escala
+        FROM alumno_escala AS a JOIN escala AS e ON a.id_escala = e.id_escala
         GROUP BY a.nivel_variable
         """)
         total_nivel_variable = cur.fetchall()
@@ -895,7 +898,7 @@ def sesion_psicologo():
         cur.execute("""SELECT a.id_escala, a.Ddesarrollo, a.puntaje, a.id_alumno, a.nivel_variable, e.nom_variable AS Variable,
          EXTRACT(month FROM a.Ddesarrollo) AS Meses, 
          COUNT(a.id_escala) AS Total 
-         FROM ALUMNO_ESCALA AS a JOIN escala AS e ON a.id_escala = e.id_escala
+         FROM alumno_escala AS a JOIN escala AS e ON a.id_escala = e.id_escala
          GROUP BY a.id_escala, Meses""")
         datos_totales=cur.fetchall()
         global dfp3
