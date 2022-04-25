@@ -123,6 +123,8 @@ def eliminar_actividad():
 # Registrar actividad
 ## ESTO ES TEMPORAL
 ## TODO: MOVER A UN ARCHIVO A PARTE
+### Clasificacion de texto
+###############################################
 import joblib
 
 tr = joblib.load('text_classif/tfidf.pkl')
@@ -131,7 +133,46 @@ clf = joblib.load('text_classif/SVM.pkl')
 def predict_activity(activity_text):
     value = tr.transform([activity_text])
     return clf.predict(value)
+################################################
 
+### Deteccion de fecha
+################################################
+from sutime import SUTime
+import string
+#sutime = SUTime(mark_time_ranges=True, include_range=True,language='spanish')
+sutime = SUTime(language='spanish')
+dias_semana = [ 'lunes', 'martes', 'miércoles','miercoles', 'jueves', 'viernes', 'sabado', 'sábado', 'domingo' ]
+meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','setiembre','septiembre','octubre','noviembre','diciembre']
+
+def get_date_by_points(arr_dates):
+    maxi, maxpoints = -1, 0
+    for index in range(len(arr_dates)):
+        obj_date = arr_dates[index]
+
+        ## preprocesamiento del texto
+        text_date = obj_date['text'].lower().strip()
+        for c in (string.punctuation + ' \n'):
+            text_date = text_date.replace(c, " ")
+        text_date = text_date.split(' ')
+        
+        ## Puntaje para la fecha
+        points = 0
+        for word in text_date:
+            if word.isdigit():
+                points += 1
+            elif word in (dias_semana + meses):
+                points += 2
+
+        if points > maxpoints:
+            maxi = index
+            maxpoints = points
+    
+    if maxi == -1:
+        return None
+    return arr_dates[maxi]['value']
+
+
+################################################
 # Registrar actividades por parte del psicologo
 @app.route('/registrar_actividad', methods=['GET', 'POST'])
 def registrar_actividad():
@@ -145,15 +186,17 @@ def registrar_actividad():
             desc_actividad = request.form['desc_actividad']
             variable = predict_activity(desc_actividad)[0]
 
-            fecha = request.form.get('fecha')
-            check_fecha = request.form.get('check_fecha')
+            arr_dates = sutime.parse(desc_actividad.lower())
+            fecha = get_date_by_points(arr_dates)
 
+            #fecha = request.form.get('fecha')
+            #check_fecha = request.form.get('check_fecha')
 
             print(nom_actividad, desc_actividad)
             print('variable:',variable)
-            print('fecha', fecha)
-            print('check_fecha', check_fecha)
-            
+            print('posibles fechas\n', sutime.parse(desc_actividad))
+            print(fecha)
+
             cur.execute("""
                     INSERT INTO `actividades` 
                     (`nom_actividad`, `descripcion`, `id_psicologo`, `variable`, `fecha`) 
@@ -443,48 +486,59 @@ def test_psicologico_main():
 @app.route('/test_ansiedad', methods=['GET','POST'])
 def test_ansiedad():
     if is_logged():
+        error = None
         if request.method == 'POST':
 
             id_alumno= session['usuario']['id_alumno']
-            # tabla alumno_escala
-            p1 = int(request.form['1'])
-            p2 = int(request.form['2'])
-            p3 = int(request.form['3'])
-            p4 = int(request.form['4'])
-            p5 = int(request.form['5'])
-            p6 = int(request.form['6'])
-            p7 = int(request.form['7'])
 
-
-            puntaje_total=p1+p2+p3+p4+p5+p6+p7
-            puntaje_total=int(puntaje_total)
-            nivel_variable="Temp"
-            desarrollo=datetime.datetime.now()
-            desarrollo=desarrollo.strftime('%Y-%m-%d')
-
-            if puntaje_total==4:
-                nivel_variable="Ansiedad Leve"
-            elif puntaje_total>=5 and puntaje_total<=7:
-                nivel_variable="Ansiedad Moderada"
-            elif puntaje_total==8 or puntaje_total == 9:
-                nivel_variable="Ansiedad Severa"
-            elif puntaje_total<4:
-                nivel_variable="Sin ansiedad"
+            if request.form.get('1') is None or \
+               request.form.get('2') is None or \
+               request.form.get('3') is None or \
+               request.form.get('4') is None or \
+               request.form.get('5') is None or \
+               request.form.get('6') is None or \
+               request.form.get('7') is None:
+                error = 'Completa todos los campos necesarios, por favor'
+                return render_template('test_ansiedad.html', error=error)
             else:
-                nivel_variable="Ansiedad Extremadamente Severa"
 
-            cur = mysql.connection.cursor()
+                p1 = int(request.form.get('1'))
+                p2 = int(request.form.get('2'))
+                p3 = int(request.form.get('3'))
+                p4 = int(request.form.get('4'))
+                p5 = int(request.form.get('5'))
+                p6 = int(request.form.get('6'))
+                p7 = int(request.form.get('7'))
 
-            cur.execute(
-                "INSERT INTO alumno_escala (id_escala, Ddesarrollo, puntaje, nivel_variable, id_alumno) VALUES (%s,%s,%s,%s,%s)",
-                (1, desarrollo, puntaje_total, nivel_variable, id_alumno))
-            mysql.connection.commit()
+                puntaje_total=p1+p2+p3+p4+p5+p6+p7
+                puntaje_total=int(puntaje_total)
+                nivel_variable="Temp"
+                desarrollo=datetime.datetime.now()
+                desarrollo=desarrollo.strftime('%Y-%m-%d')
 
-            ruta = url_for('visualizar_resultado', id_alumno_escala=cur.lastrowid)
+                if puntaje_total==4:
+                    nivel_variable="Ansiedad Leve"
+                elif puntaje_total>=5 and puntaje_total<=7:
+                    nivel_variable="Ansiedad Moderada"
+                elif puntaje_total==8 or puntaje_total == 9:
+                    nivel_variable="Ansiedad Severa"
+                elif puntaje_total<4:
+                    nivel_variable="Sin ansiedad"
+                else:
+                    nivel_variable="Ansiedad Extremadamente Severa"
 
-            print("Se registró la escala correctamente.")
-            cur.close()
-            return redirect(ruta)
+                cur = mysql.connection.cursor()
+
+                cur.execute(
+                    "INSERT INTO alumno_escala (id_escala, Ddesarrollo, puntaje, nivel_variable, id_alumno) VALUES (%s,%s,%s,%s,%s)",
+                    (1, desarrollo, puntaje_total, nivel_variable, id_alumno))
+                mysql.connection.commit()
+
+                ruta = url_for('visualizar_resultado', id_alumno_escala=cur.lastrowid)
+
+                print("Se registró la escala correctamente.")
+                cur.close()
+                return redirect(ruta)
         else:
             return render_template('test_ansiedad.html')
     else:
@@ -494,48 +548,60 @@ def test_ansiedad():
 @app.route('/test_depresion', methods=['GET','POST'])
 def test_depresion():
     if is_logged():
+        error = None
         if request.method == 'POST':
 
             id_alumno= session['usuario']['id_alumno']
-            # tabla alumno_escala
-            p1 = int(request.form['1'])
-            p2 = int(request.form['2'])
-            p3 = int(request.form['3'])
-            p4 = int(request.form['4'])
-            p5 = int(request.form['5'])
-            p6 = int(request.form['6'])
-            p7 = int(request.form['7'])
-
-
-            puntaje_total=p1+p2+p3+p4+p5+p6+p7
-            puntaje_total=int(puntaje_total)
-            nivel_variable="Temp"
-            desarrollo=datetime.datetime.now()
-            desarrollo=desarrollo.strftime('%Y-%m-%d')
-
-            if puntaje_total==5 or puntaje_total == 6:
-                nivel_variable="Depresión Leve"
-            elif puntaje_total>=7 and puntaje_total<=10:
-                nivel_variable="Depresión Moderada"
-            elif puntaje_total>=11 and puntaje_total <= 13:
-                nivel_variable="Depresión Severa"
-            elif puntaje_total<=4:
-                nivel_variable="Sin depresión"
-            else:
-                nivel_variable="Depresión Extremadamente Severa"
-
-            cur = mysql.connection.cursor()
-
-            cur.execute(
-                "INSERT INTO alumno_escala (id_escala, Ddesarrollo, puntaje, nivel_variable, id_alumno) VALUES (%s,%s,%s,%s,%s)",
-                (2, desarrollo, puntaje_total, nivel_variable, id_alumno))
-            mysql.connection.commit()
             
-            ruta = url_for('visualizar_resultado', id_alumno_escala=cur.lastrowid)
+            if request.form.get('1') is None or \
+               request.form.get('2') is None or \
+               request.form.get('3') is None or \
+               request.form.get('4') is None or \
+               request.form.get('5') is None or \
+               request.form.get('6') is None or \
+               request.form.get('7') is None:
+                error = 'Completa todos los campos necesarios, por favor'
+                return render_template('test_depresion.html', error=error)
+            else:
 
-            print("Se registró la escala correctamente.")
-            cur.close()
-            return redirect(ruta)
+                p1 = int(request.form.get('1'))
+                p2 = int(request.form.get('2'))
+                p3 = int(request.form.get('3'))
+                p4 = int(request.form.get('4'))
+                p5 = int(request.form.get('5'))
+                p6 = int(request.form.get('6'))
+                p7 = int(request.form.get('7'))
+
+
+                puntaje_total=p1+p2+p3+p4+p5+p6+p7
+                puntaje_total=int(puntaje_total)
+                nivel_variable="Temp"
+                desarrollo=datetime.datetime.now()
+                desarrollo=desarrollo.strftime('%Y-%m-%d')
+
+                if puntaje_total==5 or puntaje_total == 6:
+                    nivel_variable="Depresión Leve"
+                elif puntaje_total>=7 and puntaje_total<=10:
+                    nivel_variable="Depresión Moderada"
+                elif puntaje_total>=11 and puntaje_total <= 13:
+                    nivel_variable="Depresión Severa"
+                elif puntaje_total<=4:
+                    nivel_variable="Sin depresión"
+                else:
+                    nivel_variable="Depresión Extremadamente Severa"
+
+                cur = mysql.connection.cursor()
+
+                cur.execute(
+                    "INSERT INTO alumno_escala (id_escala, Ddesarrollo, puntaje, nivel_variable, id_alumno) VALUES (%s,%s,%s,%s,%s)",
+                    (2, desarrollo, puntaje_total, nivel_variable, id_alumno))
+                mysql.connection.commit()
+                
+                ruta = url_for('visualizar_resultado', id_alumno_escala=cur.lastrowid)
+
+                print("Se registró la escala correctamente.")
+                cur.close()
+                return redirect(ruta)
         else:
             return render_template('test_depresion.html')
     else:
@@ -546,48 +612,59 @@ def test_depresion():
 @app.route('/test_estres', methods=['GET','POST'])
 def test_estres():
     if is_logged():
+        error = None
         if request.method == 'POST':
 
             id_alumno= session['usuario']['id_alumno']
-            # tabla alumno_escala
-            p1 = int(request.form['1'])
-            p2 = int(request.form['2'])
-            p3 = int(request.form['3'])
-            p4 = int(request.form['4'])
-            p5 = int(request.form['5'])
-            p6 = int(request.form['6'])
-            p7 = int(request.form['7'])
-
-
-            puntaje_total=p1+p2+p3+p4+p5+p6+p7
-            puntaje_total=int(puntaje_total)
-            nivel_variable="Temp"
-            desarrollo=datetime.datetime.now()
-            desarrollo=desarrollo.strftime("%Y-%m-%d")
-
-            if puntaje_total==8 or puntaje_total == 9:
-                nivel_variable="Estrés Leve"
-            elif puntaje_total>=10 and puntaje_total<=12:
-                nivel_variable="Estrés Moderada"
-            elif puntaje_total>=13 and puntaje_total <= 16:
-                nivel_variable="Estrés Severa"
-            elif puntaje_total<=7:
-                nivel_variable="Sin estrés"
+            
+            if request.form.get('1') is None or \
+               request.form.get('2') is None or \
+               request.form.get('3') is None or \
+               request.form.get('4') is None or \
+               request.form.get('5') is None or \
+               request.form.get('6') is None or \
+               request.form.get('7') is None:
+                error = 'Completa todos los campos necesarios, por favor'
+                return render_template('test_estres.html', error=error)
             else:
-                nivel_variable="Estrés Extremadamente Severa"
 
-            cur = mysql.connection.cursor()
+                p1 = int(request.form.get('1'))
+                p2 = int(request.form.get('2'))
+                p3 = int(request.form.get('3'))
+                p4 = int(request.form.get('4'))
+                p5 = int(request.form.get('5'))
+                p6 = int(request.form.get('6'))
+                p7 = int(request.form.get('7'))
 
-            cur.execute(
-                "INSERT INTO alumno_escala (id_escala, Ddesarrollo, puntaje, nivel_variable, id_alumno) VALUES (%s,%s,%s,%s,%s)",
-                (3, desarrollo, puntaje_total, nivel_variable, id_alumno))
-            mysql.connection.commit()
+                puntaje_total=p1+p2+p3+p4+p5+p6+p7
+                puntaje_total=int(puntaje_total)
+                nivel_variable="Temp"
+                desarrollo=datetime.datetime.now()
+                desarrollo=desarrollo.strftime("%Y-%m-%d")
 
-            ruta = url_for('visualizar_resultado', id_alumno_escala=cur.lastrowid)
+                if puntaje_total==8 or puntaje_total == 9:
+                    nivel_variable="Estrés Leve"
+                elif puntaje_total>=10 and puntaje_total<=12:
+                    nivel_variable="Estrés Moderada"
+                elif puntaje_total>=13 and puntaje_total <= 16:
+                    nivel_variable="Estrés Severa"
+                elif puntaje_total<=7:
+                    nivel_variable="Sin estrés"
+                else:
+                    nivel_variable="Estrés Extremadamente Severa"
 
-            print("Se registró la escala correctamente.")
-            cur.close()
-            return redirect(ruta)
+                cur = mysql.connection.cursor()
+
+                cur.execute(
+                    "INSERT INTO alumno_escala (id_escala, Ddesarrollo, puntaje, nivel_variable, id_alumno) VALUES (%s,%s,%s,%s,%s)",
+                    (3, desarrollo, puntaje_total, nivel_variable, id_alumno))
+                mysql.connection.commit()
+
+                ruta = url_for('visualizar_resultado', id_alumno_escala=cur.lastrowid)
+
+                print("Se registró la escala correctamente.")
+                cur.close()
+                return redirect(ruta)
         else:
             return render_template('test_estres.html')
     else:
@@ -630,22 +707,32 @@ def registro_alumno():
 @app.route('/editar_perfil_a', methods=['GET','POST'])
 def editar_perfil_a():
     if is_logged():
+
+        # ID del alumno
+        id_alumno= session['usuario']['id_alumno']
+        cur = mysql.connection.cursor()
+        cur.execute(
+            """
+            SELECT * 
+            FROM `alumno`
+            WHERE id_alumno = %s
+            """,
+            [id_alumno])
+        alumno = cur.fetchone()
+
         if request.method == 'POST':
 
-            # ID del alumno
-            id_alumno= session['usuario']['id_alumno']
-
             # tabla persona
-            nombres = request.form['nombre']
-            apellidos = request.form['apellidos']
-            email = request.form['email']
-            sede = request.form['sede']
-            contrasena = request.form['contrasena']
+            nombres = alumno['nombres'] if not request.form['nombres'] else request.form['nombres']
+            apellidos = alumno['apellidos'] if not request.form['apellidos'] else request.form['apellidos']
+            email = alumno['email'] if not request.form['email'] else request.form['email']
+            sede = alumno['sede'] if not request.form['sede'] else request.form['sede']
+            contrasena = alumno['contrasena']
             # tabla alumno
-            carrera = request.form['carrera']
-            sexo = request.form['sexo']
-            ciclo = request.form['ciclo']
-            edad = request.form['edad']
+            carrera = alumno['carrera'] if not request.form['carrera'] else request.form['carrera']
+            sexo = alumno['sexo'] if not request.form['sexo'] else request.form['sexo']
+            ciclo = alumno['ciclo'] if not request.form['ciclo'] else request.form['ciclo']
+            edad = alumno['edad'] if not request.form['edad'] else request.form['edad']
 
             #Para BD sin herencia
             cur = mysql.connection.cursor()
@@ -653,9 +740,18 @@ def editar_perfil_a():
                 "UPDATE alumno set carrera=%s, edad=%s, ciclo=%s, nombres=%s, apellidos=%s, email=%s, contrasena=%s, sexo=%s, sede=%s WHERE id_alumno=%s",
                 (carrera, edad, ciclo, nombres, apellidos, email, contrasena, sexo, sede, id_alumno))
             mysql.connection.commit()
-            return redirect(url_for('editar_perfil_a'))
-        else:
-            return render_template('editar_perfil_a.html')
+
+            cur.execute(
+                """
+                SELECT * 
+                FROM `alumno`
+                WHERE id_alumno = %s
+                """,
+                [id_alumno])
+            alumno = cur.fetchone()
+
+        cur.close()
+        return render_template('editar_perfil_a.html', alumno=alumno)
     else:
         print("No usuario")
         return redirect(url_for('login'))

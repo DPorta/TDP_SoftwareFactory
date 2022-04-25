@@ -8,16 +8,16 @@
     <div class="info_alumno">
         <table>
             <tr>
-                <td>Nombre(s): <b>{{session["nombre"]}}</b></td>
-                <td>Apellido(s): <b>{{session["apellido"]}}</b></td>
-                <td>Email: <b>{{session["email"]}}</b></td>
-                <td>Sede: <b>{{session["sede"]}}</b></td>
+                <td>Nombre(s): <b>{{alumno["nombres"]}}</b></td>
+                <td>Apellido(s): <b>{{alumno["apellidos"]}}</b></td>
+                <td>Email: <b>{{alumno["email"]}}</b></td>
+                <td>Sede: <b>{{alumno["sede"]}}</b></td>
             </tr>
             <tr>
-                <td>Carrera: <b>{{session["carrera"]}}</b></td>
-                <td>Edad: <b>{{session["edad"]}}</b></td>
-                <td>Ciclo: <b>{{session["ciclo"]}}</b></td>
-                <td>Sexo: <b>{{session["sexo"]}}</b></td>
+                <td>Carrera: <b>{{alumno["carrera"]}}</b></td>
+                <td>Edad: <b>{{alumno["edad"]}}</b></td>
+                <td>Ciclo: <b>{{alumno["ciclo"]}}</b></td>
+                <td>Sexo: <b>{{alumno["sexo"]}}</b></td>
             </tr>
         </table>    
     </div>
@@ -29,7 +29,7 @@
     
             <div class="form-group">
                 <label>Nombres:</label>
-                <input type="text" class="form-input" name="nombre">
+                <input type="text" class="form-input" name="nombres">
             </div>
     
             <div class="form-group">
@@ -40,7 +40,7 @@
             <div class="form-group">
                 <label>Sede:</label>
                 <select class="form-select" name ="sede">
-                    <option selected>Selecciona una sede</option>
+                    <option value="" selected>Selecciona una sede</option>
                     <option value="San Miguel">San Miguel</option>
                     <option value="San Isidro">San Isidro</option>
                     <option value="Monterrico">Monterrico</option>
@@ -51,7 +51,7 @@
             <div class="form-group">
                 <label>Género:</label>
                 <select class="form-select" name ="sexo">
-                    <option selected>Género</option>
+                    <option value="" selected>Género</option>
                     <option value="Masculino">Masculino</option>
                     <option value="Femenino">Femenino</option>
                   </select>
@@ -60,7 +60,7 @@
             <div class="form-group">
                 <label>Carrera:</label>
                 <select class="form-select" name ="carrera">
-                    <option selected>Carrera</option>
+                    <option value="" selected>Carrera</option>
                     <option value="Ingenieria de sistemas de información">Ingenieria de sistemas de información</option>
                     <option value="Ingenieria de sistemas de software">Ingenieria de sistemas de software</option>
                     <option value="Ciencias de la Computación">Ciencias de la Computación</option>
@@ -75,7 +75,7 @@
             <div class="form-group">
                 <label>Ciclo:</label>
                 <select class="form-select" name ="ciclo">
-                    <option selected>Ciclo</option>
+                    <option value="" selected>Ciclo</option>
                     <option value="1ro">1ro</option>
                     <option value="2do">2do</option>
                     <option value="3ro">3ro</option>
@@ -96,7 +96,7 @@
 
             <div class="form-group">
                 <label>Contraseña:</label>
-                <input type="password" class="form-input" name="contrasena">
+                <input type="password" class="form-input" name="contrasena" disabled>
             </div>
     
             <div class="form-group">
