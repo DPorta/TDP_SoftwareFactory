@@ -13,7 +13,7 @@ endblock title %} {% block content %}
   3: Me ha ocurrido mucho, o la mayor parte del tiempo.
 </p>
 
-<div class="test_ans">
+<div class="test p-2">
   {% if error %}
   <div class="alert alert-danger alert-dismissible fade show" role="alert">
     {{ error }}
@@ -26,126 +26,195 @@ endblock title %} {% block content %}
   </div>
   {% endif %}
   <form class="form" action="/test_ansiedad" method="POST">
-    <div class="radio">
+    <div class="radio mb-3">
       <h3>Me di cuenta que tenía la boca seca</h3>
+      <div class="row">
+        <div class="col-2">
+          <input type="radio" name="1" value="0" id="0" class="me-2" />
+          <label for="0">Nunca</label>
+        </div>
 
-      <input type="radio" name="1" value="0" id="0" />
-      <label for="0">Nunca</label>
+        <div class="col-2">
+          <input type="radio" name="1" value="1" id="1" class="me-2" />
+          <label for="1">A veces</label>
+        </div>
 
-      <input type="radio" name="1" value="1" id="1" />
-      <label for="1">A veces</label>
+        <div class="col-2">
+          <input type="radio" name="1" value="2" id="2" class="me-2" />
+          <label for="2">Frecuentemente</label>
+        </div>
 
-      <input type="radio" name="1" value="2" id="2" />
-      <label for="2">Frecuentemente</label>
-
-      <input type="radio" name="1" value="3" id="3" />
-      <label for="3">Siempre</label>
+        <div class="col-2">
+          <input type="radio" name="1" value="3" id="3" class="me-2" />
+          <label for="3">Siempre</label>
+        </div>
+      </div>
     </div>
 
-    <div class="radio">
+    <div class="radio mb-3">
       <h3>Se me hizo difícil respirar</h3>
 
-      <input type="radio" name="2" value="0" id="4" />
-      <label for="4">Nunca</label>
+      <div class="row">
+        <div class="col-2">
+          <input type="radio" name="2" value="0" id="4" class="me-2" />
+          <label for="4">Nunca</label>
+        </div>
 
-      <input type="radio" name="2" value="1" id="5" />
-      <label for="5">A veces</label>
+        <div class="col-2">
+          <input type="radio" name="2" value="1" id="5" class="me-2" />
+          <label for="5">A veces</label>
+        </div>
 
-      <input type="radio" name="2" value="2" id="6" />
-      <label for="6">Frecuentemente</label>
+        <div class="col-2">
+          <input type="radio" name="2" value="2" id="6" class="me-2" />
+          <label for="6">Frecuentemente</label>
+        </div>
 
-      <input type="radio" name="2" value="3" id="7" />
-      <label for="7">Siempre</label>
+        <div class="col-2">
+          <input type="radio" name="2" value="3" id="7" class="me-2" />
+          <label for="7">Siempre</label>
+        </div>
+      </div>
     </div>
 
-    <div class="radio">
+    <div class="radio mb-3">
       <h3>Sentí que mis manos temblaban</h3>
 
-      <input type="radio" name="3" value="0" id="8" />
-      <label for="8">Nunca</label>
+      <div class="row">
+        <div class="col-2">
+          <input type="radio" name="3" value="0" id="8" class="me-2" />
+          <label for="8">Nunca</label>
+        </div>
 
-      <input type="radio" name="3" value="1" id="9" />
-      <label for="9">A veces</label>
+        <div class="col-2">
+          <input type="radio" name="3" value="1" id="9" class="me-2" />
+          <label for="9">A veces</label>
+        </div>
 
-      <input type="radio" name="3" value="2" id="10" />
-      <label for="10">Frecuentemente</label>
+        <div class="col-2">
+          <input type="radio" name="3" value="2" id="10" class="me-2" />
+          <label for="10">Frecuentemente</label>
+        </div>
 
-      <input type="radio" name="3" value="3" id="11" />
-      <label for="11">Siempre</label>
+        <div class="col-2">
+          <input type="radio" name="3" value="3" id="11" class="me-2" />
+          <label for="11">Siempre</label>
+        </div>
+      </div>
     </div>
 
-    <div class="radio">
+    <div class="radio mb-3">
       <h3>
         Estaba preocupado por situaciones en las cuales podía tener pánico o en
         las que podría hacer el ridículo
       </h3>
 
-      <input type="radio" name="4" value="0" id="12" />
-      <label for="12">Nunca</label>
+      <div class="row">
+        <div class="col-2">
+          <input type="radio" name="4" value="0" id="12" class="me-2" />
+          <label for="12">Nunca</label>
+        </div>
 
-      <input type="radio" name="4" value="1" id="13" />
-      <label for="13">A veces</label>
+        <div class="col-2">
+          <input type="radio" name="4" value="1" id="13" class="me-2" />
+          <label for="13">A veces</label>
+        </div>
 
-      <input type="radio" name="4" value="2" id="14" />
-      <label for="14">Frecuentemente</label>
+        <div class="col-2">
+          <input type="radio" name="4" value="2" id="14" class="me-2" />
+          <label for="14">Frecuentemente</label>
+        </div>
 
-      <input type="radio" name="4" value="3" id="15" />
-      <label for="15">Siempre</label>
+        <div class="col-2">
+          <input type="radio" name="4" value="3" id="15" class="me-2" />
+          <label for="15">Siempre</label>
+        </div>
+      </div>
     </div>
 
-    <div class="radio">
+    <div class="radio mb-3">
       <h3>Sentí que estaba al punto de pánico</h3>
 
-      <input type="radio" name="5" value="0" id="16" />
-      <label for="16">Nunca</label>
+      <div class="row">
+        <div class="col-2">
+          <input type="radio" name="5" value="0" id="16" class="me-2" />
+          <label for="16">Nunca</label>
+        </div>
 
-      <input type="radio" name="5" value="1" id="17" />
-      <label for="17">A veces</label>
+        <div class="col-2">
+          <input type="radio" name="5" value="1" id="17" class="me-2" />
+          <label for="17">A veces</label>
+        </div>
 
-      <input type="radio" name="5" value="2" id="18" />
-      <label for="18">Frecuentemente</label>
+        <div class="col-2">
+          <input type="radio" name="5" value="2" id="18" class="me-2" />
+          <label for="18">Frecuentemente</label>
+        </div>
 
-      <input type="radio" name="5" value="3" id="19" />
-      <label for="19">Siempre</label>
+        <div class="col-2">
+          <input type="radio" name="5" value="3" id="19" class="me-2" />
+          <label for="19">Siempre</label>
+        </div>
+      </div>
     </div>
 
-    <div class="radio">
+    <div class="radio mb-3">
       <h3>
         Sentí los latidos de mi corazón a pesar de no haber hecho ningún
         esfuerzo físico
       </h3>
 
-      <input type="radio" name="6" value="0" id="20" />
-      <label for="20">Nunca</label>
+      <div class="row">
+        <div class="col-2">
+          <input type="radio" name="6" value="0" id="20" class="me-2" />
+          <label for="20">Nunca</label>
+        </div>
 
-      <input type="radio" name="6" value="1" id="21" />
-      <label for="21">A veces</label>
+        <div class="col-2">
+          <input type="radio" name="6" value="1" id="21" class="me-2" />
+          <label for="21">A veces</label>
+        </div>
 
-      <input type="radio" name="6" value="2" id="22" />
-      <label for="22">Frecuentemente</label>
+        <div class="col-2">
+          <input type="radio" name="6" value="2" id="22" class="me-2" />
+          <label for="22">Frecuentemente</label>
+        </div>
 
-      <input type="radio" name="6" value="3" id="23" />
-      <label for="23">Siempre</label>
+        <div class="col-2">
+          <input type="radio" name="6" value="3" id="23" class="me-2" />
+          <label for="23">Siempre</label>
+        </div>
+      </div>
     </div>
 
-    <div class="radio">
+    <div class="radio mb-3">
       <h3>Tuve miedo sin razón</h3>
 
-      <input type="radio" name="7" value="0" id="24" />
-      <label for="24">Nunca</label>
+      <div class="row">
+        <div class="col-2">
+          <input type="radio" name="7" value="0" id="24" class="me-2" />
+          <label for="24">Nunca</label>
+        </div>
 
-      <input type="radio" name="7" value="1" id="25" />
-      <label for="25">A veces</label>
+        <div class="col-2">
+          <input type="radio" name="7" value="1" id="25" class="me-2" />
+          <label for="25">A veces</label>
+        </div>
 
-      <input type="radio" name="7" value="2" id="26" />
-      <label for="26">Frecuentemente</label>
+        <div class="col-2">
+          <input type="radio" name="7" value="2" id="26" class="me-2" />
+          <label for="26">Frecuentemente</label>
+        </div>
 
-      <input type="radio" name="7" value="3" id="27" />
-      <label for="27">Siempre</label>
+        <div class="col-2">
+          <input type="radio" name="7" value="3" id="27" class="me-2" />
+          <label for="27">Siempre</label>
+        </div>
+      </div>
     </div>
 
-    <div class="form-group">
-      <button class="boton">Enviar</button>
+    <div class="form-group row justify-content-center">
+      <button class="col-auto btn btn-primary">Enviar</button>
     </div>
   </form>
 </div>
