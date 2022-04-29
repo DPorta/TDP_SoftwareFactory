@@ -107,7 +107,8 @@ td {
 }
 
 .test,
-.resultado_test {
+.resultado_test,
+.detalle_actividad {
   margin: auto;
   width: auto;
   padding: 2.4rem;
@@ -118,4 +119,18 @@ td {
 
 .resultado_test {
   font-size: 20px;
+}
+
+.detalle_actividad {
+  text-align: justify;
+}
+
+.descripcion-actividad {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+table {
+  table-layout: fixed;
 }

@@ -431,7 +431,10 @@ def buscar_actividad():
             cur.execute("""
                 SELECT * 
                 FROM `actividades` a
-                WHERE (a.`variable` = %s OR 'Todos' = %s) 
+                WHERE (a.`variable` = %s OR 'Todos' = %s)
+                AND (`a`.`fecha` >= CURRENT_DATE
+                     OR `a`.`fecha` IS NULL)
+                ORDER BY ISNULL(`a`.`fecha`), `a`.`fecha`
             """, 
             [variable, variable])
             actividades = cur.fetchall()
@@ -441,8 +444,11 @@ def buscar_actividad():
         else:
             cur = mysql.connection.cursor()
             cur.execute("""
-                SELECT * 
-                FROM `actividades`
+                SELECT *
+                FROM `actividades` a
+                WHERE (`a`.`fecha` >= CURRENT_DATE
+                     OR `a`.`fecha` IS NULL)
+                ORDER BY ISNULL(`a`.`fecha`), `a`.`fecha`
             """)
             actividades = cur.fetchall()
             cur.close()
@@ -451,6 +457,32 @@ def buscar_actividad():
     else:
         return redirect(url_for('login'))
 
+# Detalle actvidad
+@app.route('/detalle_actividad', methods=['POST'])
+def detalle_actividad():
+    error = None
+    if is_logged():
+        actividad = None
+        if request.method == 'POST':
+            id_actividad = request.form.get('id_actividad')
+            print('llego a detalle actividad', id_actividad)
+            
+            # Obtenemos la actividad
+            cur = mysql.connection.cursor()
+            cur.execute("""
+                SELECT *
+                FROM actividades a
+                WHERE a.id_actividad = %s
+            """,
+            [id_actividad]
+            )
+            actividad = cur.fetchone()
+            cur.close()
+
+        return render_template('detalle_actividad.html',
+                                actividad=actividad)
+    else:
+        return redirect(url_for('login'))
 
 # Visualizar resultados de test y recomendacion de actividades
 @app.route('/visualizar_resultado/<id_alumno_escala>', methods=['GET'])
@@ -490,6 +522,9 @@ def visualizar_resultado(id_alumno_escala):
                 SELECT * 
                 FROM `actividades` a
                 WHERE a.`variable` = %s
+                AND (`a`.`fecha` >= CURRENT_DATE
+                     OR `a`.`fecha` IS NULL)
+                ORDER BY ISNULL(`a`.`fecha`), `a`.`fecha`
             """, 
             [nom_variable])
             actividades = cur.fetchall()
