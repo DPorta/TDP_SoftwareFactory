@@ -13,7 +13,7 @@ title %} {% block content %}
   3: Me ha ocurrido mucho, o la mayor parte del tiempo.
 </p>
 
-<div class="test_estres">
+<div class="test p-2">
   {% if error %}
   <div class="alert alert-danger alert-dismissible fade show" role="alert">
     {{ error }}
@@ -26,122 +26,30 @@ title %} {% block content %}
   </div>
   {% endif %}
   <form class="form" action="/test_estres" method="POST">
-    <div class="radio">
-      <h3>Me ha costado mucho descargar la tensión</h3>
-
-      <input type="radio" name="1" value="0" id="0" />
-      <label for="0">Nunca</label>
-
-      <input type="radio" name="1" value="1" id="1" />
-      <label for="1">A veces</label>
-
-      <input type="radio" name="1" value="2" id="2" />
-      <label for="2">Frecuentemente</label>
-
-      <input type="radio" name="1" value="3" id="3" />
-      <label for="3">Siempre</label>
+    {% for i in range(preguntas|length) %}
+    <div class="radio mb-3">
+      <h3>{{preguntas[i]}}</h3>
+      <div class="row">
+        {% for j in range(respuestas_test|length) %}
+        <div class="col-2">
+          <input
+            type="radio"
+            name="{{i + 1}}"
+            value="{{j}}"
+            id="{{ i * (respuestas_test|length) + j }}"
+            class="me-2"
+          />
+          <label for="{{ i * (respuestas_test|length) + j }}"
+            >{{respuestas_test[j]}}</label
+          >
+        </div>
+        {% endfor %}
+      </div>
     </div>
+    {% endfor %}
 
-    <div class="radio">
-      <h3>Reaccioné exageradamente en ciertas situaciones</h3>
-
-      <input type="radio" name="2" value="0" id="4" />
-      <label for="4">Nunca</label>
-
-      <input type="radio" name="2" value="1" id="5" />
-      <label for="5">A veces</label>
-
-      <input type="radio" name="2" value="2" id="6" />
-      <label for="6">Frecuentemente</label>
-
-      <input type="radio" name="2" value="3" id="7" />
-      <label for="7">Siempre</label>
-    </div>
-
-    <div class="radio">
-      <h3>He sentido que estaba gastando una gran cantidad de energía</h3>
-
-      <input type="radio" name="3" value="0" id="8" />
-      <label for="8">Nunca</label>
-
-      <input type="radio" name="3" value="1" id="9" />
-      <label for="9">A veces</label>
-
-      <input type="radio" name="3" value="2" id="10" />
-      <label for="10">Frecuentemente</label>
-
-      <input type="radio" name="3" value="3" id="11" />
-      <label for="11">Siempre</label>
-    </div>
-
-    <div class="radio">
-      <h3>Me he sentido inquieto</h3>
-
-      <input type="radio" name="4" value="0" id="12" />
-      <label for="12">Nunca</label>
-
-      <input type="radio" name="4" value="1" id="13" />
-      <label for="13">A veces</label>
-
-      <input type="radio" name="4" value="2" id="14" />
-      <label for="14">Frecuentemente</label>
-
-      <input type="radio" name="4" value="3" id="15" />
-      <label for="15">Siempre</label>
-    </div>
-
-    <div class="radio">
-      <h3>Se me hizo difícil relajarme</h3>
-
-      <input type="radio" name="5" value="0" id="16" />
-      <label for="16">Nunca</label>
-
-      <input type="radio" name="5" value="1" id="17" />
-      <label for="17">A veces</label>
-
-      <input type="radio" name="5" value="2" id="18" />
-      <label for="18">Frecuentemente</label>
-
-      <input type="radio" name="5" value="3" id="19" />
-      <label for="19">Siempre</label>
-    </div>
-
-    <div class="radio">
-      <h3>
-        No toleré nada que no me permitiera continuar con lo que estaba haciendo
-      </h3>
-
-      <input type="radio" name="6" value="0" id="20" />
-      <label for="20">Nunca</label>
-
-      <input type="radio" name="6" value="1" id="21" />
-      <label for="21">A veces</label>
-
-      <input type="radio" name="6" value="2" id="22" />
-      <label for="22">Frecuentemente</label>
-
-      <input type="radio" name="6" value="3" id="23" />
-      <label for="23">Siempre</label>
-    </div>
-
-    <div class="radio">
-      <h3>He tendido a sentirme enfadado con facilidad</h3>
-
-      <input type="radio" name="7" value="0" id="24" />
-      <label for="24">Nunca</label>
-
-      <input type="radio" name="7" value="1" id="25" />
-      <label for="25">A veces</label>
-
-      <input type="radio" name="7" value="2" id="26" />
-      <label for="26">Frecuentemente</label>
-
-      <input type="radio" name="7" value="3" id="27" />
-      <label for="27">Siempre</label>
-    </div>
-
-    <div class="form-group">
-      <button class="boton">Enviar</button>
+    <div class="form-group row justify-content-center">
+      <button class="col-auto btn btn-primary">Enviar</button>
     </div>
   </form>
 </div>

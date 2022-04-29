@@ -57,6 +57,34 @@ hora_citas = [
 ## Variables para buscar actividades
 variables = ['Todos','Estrés','Depresión','Ansiedad']
 
+## Variables para los test
+respuestas_test = ['Nunca', 'A veces','Frecuentemente','Siempre']
+preguntas_ansiedad = ['Me di cuenta que tenía la boca seca',
+                      'Se me hizo difícil respirar',
+                      'Sentí que mis manos temblaban',
+                      'Estaba preocupado por situaciones en las cuales podía tener pánico o en las que podría hacer el ridículo',
+                      'Sentí que estaba al punto de pánico',
+                      'Sentí los latidos de mi corazón a pesar de no haber hecho ningún esfuerzo físico',
+                      'Tuve miedo sin razón']
+
+preguntas_depresion = ['No podía sentir ningún sentimiento positivo',
+                       'Se me hizo difícil tomar la iniciativa para hacer cosas',
+                       'He sentido que no había nada que me ilusionara',
+                       'Me sentí triste y deprimido',
+                       'No me pude entusiasmar por nada',
+                       'Sentí que valía muy poco como persona',
+                       'Sentí que la vida no tenía ningún sentido']
+
+preguntas_estres = ['Me ha costado mucho descargar la tensión',
+                    'Reaccioné exageradamente en ciertas situaciones',
+                    'He sentido que estaba gastando una gran cantidad de energía',
+                    'Me he sentido inquieto',
+                    'Se me hizo difícil relajarme',
+                    'No toleré nada que no me permitiera continuar con lo que estaba haciendo',
+                    'He tendido a sentirme enfadado con facilidad']
+## Nombre de Emoticones
+img_emoticones = ['sin sintomas.png','leve.png','moderada.png','severa.png','extremadamente severa.png']
+
 # HOME (Página de Inicio)
 @app.route('/')
 def home():
@@ -430,6 +458,7 @@ def visualizar_resultado(id_alumno_escala):
     if is_logged():
         print('id_alumno_escala:', id_alumno_escala)
         actividades = None
+        name_emoticon = None
         cur = mysql.connection.cursor()
 
         # Obtenemos el resultado del alumno de la tabla alumno escala
@@ -467,8 +496,46 @@ def visualizar_resultado(id_alumno_escala):
 
         cur.close()
 
-        return render_template('resultado_test.html', actividades=actividades,
-                                                        resultado_test=resultado_test)
+        ## Logica para la imagen
+        if id_escala == 1: ## ansiedad
+            if puntaje<4: 
+                name_emoticon=img_emoticones[0]
+            elif puntaje==4:
+                name_emoticon=img_emoticones[1]
+            elif puntaje>=5 and puntaje<=7:
+                name_emoticon=img_emoticones[2]
+            elif puntaje==8 or puntaje == 9:
+                name_emoticon=img_emoticones[3]
+            else:
+                name_emoticon=img_emoticones[4]
+        elif id_escala == 2: ## depresion
+            if puntaje<=4:
+                name_emoticon=img_emoticones[0]
+            elif puntaje==5 or puntaje == 6:
+                name_emoticon=img_emoticones[1]
+            elif puntaje>=7 and puntaje<=10:
+                name_emoticon=img_emoticones[2]
+            elif puntaje>=11 and puntaje <= 13:
+                name_emoticon=img_emoticones[3]
+            else:
+                name_emoticon=img_emoticones[4]
+        else: ## id_escala == 3 - estres
+            if puntaje<=7:
+                name_emoticon=img_emoticones[0]
+            elif puntaje==8 or puntaje == 9:
+                name_emoticon=img_emoticones[1]
+            elif puntaje>=10 and puntaje<=12:
+                name_emoticon=img_emoticones[2]
+            elif puntaje>=13 and puntaje <= 16:
+                name_emoticon=img_emoticones[3]
+            else:
+                name_emoticon=img_emoticones[4]
+
+        url_emoticon = url_for('static', filename='imagenes/' + name_emoticon)
+        return render_template('resultado_test.html',
+                                actividades=actividades,
+                                resultado_test=resultado_test,
+                                url_emoticon=url_emoticon)
     else:
         return redirect(url_for('login'))
 
@@ -540,7 +607,9 @@ def test_ansiedad():
                 cur.close()
                 return redirect(ruta)
         else:
-            return render_template('test_ansiedad.html')
+            return render_template('test_ansiedad.html',
+                                    preguntas=preguntas_ansiedad,
+                                    respuestas_test=respuestas_test)
     else:
         print('No usuario')
         return redirect(url_for('login'))
@@ -603,7 +672,9 @@ def test_depresion():
                 cur.close()
                 return redirect(ruta)
         else:
-            return render_template('test_depresion.html')
+            return render_template('test_depresion.html',
+                                    preguntas=preguntas_depresion,
+                                    respuestas_test=respuestas_test)
     else:
         print('No usuario')
         return redirect(url_for('login'))
@@ -666,7 +737,9 @@ def test_estres():
                 cur.close()
                 return redirect(ruta)
         else:
-            return render_template('test_estres.html')
+            return render_template('test_estres.html',
+                                    preguntas=preguntas_estres,
+                                    respuestas_test=respuestas_test)
     else:
         print('No usuario')
         return redirect(url_for('login'))

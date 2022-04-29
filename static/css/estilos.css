@@ -106,11 +106,16 @@ td {
   margin-top: 30px;
 }
 
-.test {
+.test,
+.resultado_test {
   margin: auto;
   width: auto;
   padding: 2.4rem;
   background-color: white;
   border: 1px solid rgba(0, 0, 0, 0.125);
   border-radius: 6px;
+}
+
+.resultado_test {
+  font-size: 20px;
 }

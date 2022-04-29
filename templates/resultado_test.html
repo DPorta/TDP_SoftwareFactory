@@ -22,10 +22,20 @@ endblock title %} {% block content %} {% with messages = get_flashed_messages()
 </div>
 {% endif %}
 
-<h1>Resultado del test de {{ resultado_test['nom_variable'] }}:</h1>
-<p>Se obtuvo {{ resultado_test['puntaje'] }} de puntaje.</p>
-<p>Y el resultado es {{ resultado_test['nivel_variable'] }}.</p>
-
+<div class="resultado_test p-2">
+  <h1>Resultado del test de {{ resultado_test['nom_variable'] }}:</h1>
+  <div class="row d-flex align-items-center">
+    <p class="col-4">Se obtuvo {{ resultado_test['puntaje'] }} de puntaje.</p>
+    <img
+      src="{{url_emoticon}}"
+      alt="Img Resultado"
+      class="col-auto"
+      width="90"
+      height="90"
+    />
+  </div>
+  <p>Y el resultado es {{ resultado_test['nivel_variable'] }}.</p>
+</div>
 {% if actividades %}
 <h2>Se recomienda las siguientes actividades:</h2>
 <table class="table table-striped table-hover table-bordered table-sm bg-white">
