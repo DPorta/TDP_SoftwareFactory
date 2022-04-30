@@ -9,6 +9,8 @@ from os import path
 import dash
 from dash import dcc
 from dash import html
+import matplotlib
+matplotlib.use('Agg')
 from matplotlib.pyplot import legend, xlabel, ylabel
 import plotly.express as px
 import plotly.graph_objs as go
