@@ -1,7 +1,7 @@
 from cProfile import label
 import datetime
 from posixpath import defpath
-from turtle import color
+#from turtle import color
 import xdrlib
 from flask import Flask, flash, render_template, request, redirect, url_for, session
 from flask_mysqldb import MySQL
