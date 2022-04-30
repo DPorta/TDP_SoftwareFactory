@@ -22,14 +22,14 @@ from sklearn.manifold import locally_linear_embedding
 
 app = Flask(__name__)
 # Conexion a sql
-#app.config['MYSQL_HOST'] = '127.0.0.1'
-app.config['MYSQL_HOST'] = 'localhost'
+app.config['MYSQL_HOST'] = '127.0.0.1'
+#app.config['MYSQL_HOST'] = 'localhost'
 
 app.config['MYSQL_USER'] = 'root'
 app.config['MYSQL_PASSWORD'] = ''
 # Nombre de la BD en phpmyadmin
-#app.config['MYSQL_DB'] = '2021213_DB_SINHERENCIA'
-app.config['MYSQL_DB'] = 'tdp_sw_s6'
+app.config['MYSQL_DB'] = '2021213_DB_SINHERENCIA'
+#app.config['MYSQL_DB'] = 'tdp_sw_s6'
 # CURSOR
 app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 mysql = MySQL(app)
