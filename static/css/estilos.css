@@ -75,7 +75,7 @@ td {
 .estado_mental_alumno img {
   width: 100%;
   max-width: 20vw;
-  height:auto;
+  height: auto;
   float: left;
   margin-right: 10px;
 }
@@ -100,7 +100,7 @@ td {
 .sp_line img {
   width: 100%;
   max-width: 20vw;
-  height:auto;
+  height: auto;
   float: left;
   margin-right: 10px;
 }
@@ -137,4 +137,9 @@ td {
 
 table {
   table-layout: fixed;
+}
+
+table thead {
+  background-color: #3b82ff;
+  color: white;
 }

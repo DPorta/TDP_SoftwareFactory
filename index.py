@@ -24,18 +24,18 @@ from sklearn.manifold import locally_linear_embedding
 
 app = Flask(__name__)
 # Conexion a sql
-#app.config['MYSQL_HOST'] = '127.0.0.1'
+app.config['MYSQL_HOST'] = '127.0.0.1'
 #app.config['MYSQL_HOST'] = 'localhost'
-app.config['MYSQL_HOST'] = 'bdwumf34burl3arg3wug-mysql.services.clever-cloud.com'
+#app.config['MYSQL_HOST'] = 'bdwumf34burl3arg3wug-mysql.services.clever-cloud.com'
 
-#app.config['MYSQL_USER'] = 'root'
-app.config['MYSQL_USER'] = 'u8wtjekkvx6ew9di'
+app.config['MYSQL_USER'] = 'root'
+# app.config['MYSQL_USER'] = 'u8wtjekkvx6ew9di'
 #app.config['MYSQL_PASSWORD'] = ''
-app.config['MYSQL_PASSWORD'] = 'dQVujvVE1krN6iBoLBDi'
+# app.config['MYSQL_PASSWORD'] = 'dQVujvVE1krN6iBoLBDi'
 # Nombre de la BD en phpmyadmin
-#app.config['MYSQL_DB'] = '2021213_DB_SINHERENCIA'
+app.config['MYSQL_DB'] = '2021213_DB_SINHERENCIA'
 #app.config['MYSQL_DB'] = 'tdp_sw_s6'
-app.config['MYSQL_DB'] = 'bdwumf34burl3arg3wug'
+# app.config['MYSQL_DB'] = 'bdwumf34burl3arg3wug'
 # CURSOR
 app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 mysql = MySQL(app)
@@ -45,22 +45,22 @@ app.secret_key = '123456'
 
 ## Variables
 current_date = datetime.datetime.now()
-hora_citas = [
-    ('', -1),
-    ('7:00 - 8:00', 7),
-    ('8:00 - 9:00', 8),
-    ('9:00 - 10:00', 9),
-    ('10:00 - 11:00', 10),
-    ('11:00 - 12:00', 11),
-    ('12:00 - 13:00', 12),
-    ('15:00 - 16:00', 15),
-    ('16:00 - 17:00', 16),
-    ('17:00 - 18:00', 17),
-    ('18:00 - 19:00', 18),
-    ('19:00 - 20:00', 19),
-    ('20:00 - 21:00', 20),
-    ('21:00 - 22:00', 21)
-]
+hora_citas = {
+    -1 : '',
+    7 : '7:00 - 8:00'  ,   
+    8 : '8:00 - 9:00'  ,
+    9 : '9:00 - 10:00' ,
+    10: '10:00 - 11:00', 
+    11: '11:00 - 12:00', 
+    12: '12:00 - 13:00', 
+    15: '15:00 - 16:00', 
+    16: '16:00 - 17:00', 
+    17: '17:00 - 18:00', 
+    18: '18:00 - 19:00', 
+    19: '19:00 - 20:00', 
+    20: '20:00 - 21:00', 
+    21: '21:00 - 22:00'
+}
 ## Variables para buscar actividades
 variables = ['Todos','Estrés','Depresión','Ansiedad']
 
@@ -374,12 +374,13 @@ def buscar_cita():
     error=None
     if is_logged():
         resultado_cita = []
+
         if request.method == 'POST':
             fecha = request.form['fecha']
             hora = int(request.form['hora'])
 
             if hora == -1 or not fecha:
-                error="Complete los campos necesarios para aplicar el filtro, por favor."
+                error="Complete los campos fecha y hora para aplicar el filtro, por favor."
             else:
                 h_inicio = datetime.timedelta(hours=hora)
                 h_fin = datetime.timedelta(hours=hora + 1)
@@ -401,7 +402,9 @@ def buscar_cita():
                 return render_template('buscar_cita.html', 
                                 hora_citas=hora_citas, 
                                 resultado_cita=resultado_cita,
-                                error=error)
+                                error=error,
+                                fecha=fecha,
+                                hora=hora)
 
         
         cur = mysql.connection.cursor()
@@ -788,7 +791,7 @@ def registro_alumno():
     if request.method == 'POST':
 
         # tabla persona
-        nombres = request.form['nombre']
+        nombres = request.form['nombres']
         apellidos = request.form['apellidos']
         email = request.form['email']
         sede = request.form['sede']
@@ -799,19 +802,17 @@ def registro_alumno():
         ciclo = request.form['ciclo']
         edad = request.form['edad']
 
-        # Para BD con herencia
-        # INSERT INTO persona (nombre, apellidos, email, sede, contrasena) VALUES (%s,%s,%s,%s,%s);
-        # BEGIN; INSERT INTO alumno(carrera, sexo, ciclo, edad) VALUES (%s,%s,%s,%s); COMMIT;
-
         #Para BD sin herencia
         cur = mysql.connection.cursor()
         cur.execute(
             "INSERT INTO alumno (carrera, edad, ciclo, nombres, apellidos, email, contrasena, sexo, sede) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)",
             (carrera, edad, ciclo, nombres, apellidos, email, contrasena, sexo, sede))
         mysql.connection.commit()
+
+        flash('Usuario creado correctamente. Ingrese con su email y contraseña.')
         return redirect(url_for('login'))
-    else:
-        return render_template('registro_alumno.html')
+    
+    return render_template('registro_alumno.html')
 
 # Editar Perfil Alumno
 @app.route('/editar_perfil_a', methods=['GET','POST'])

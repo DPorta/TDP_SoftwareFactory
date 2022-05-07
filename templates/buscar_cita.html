@@ -23,32 +23,38 @@ messages %} {% for message in messages %}
 {% endif %}
 <h1>Registro de cita</h1>
 <h2>Para registrar una cita, por favor seleccione un horario</h2>
-<form action="{{ url_for('buscar_cita') }}" method="POST">
-  <div class="form-group">
-    <label for="start">Fecha:</label>
-    <input
-      type="date"
-      id="start"
-      name="fecha"
-      min="2022-01-01"
-      max="2022-12-31"
-    />
-  </div>
+<div class="row justify-content-start">
+  <form action="{{ url_for('buscar_cita') }}" method="POST">
+    <div class="form-group mb-3">
+      <label for="date">Fecha:</label>
+      <input
+        type="date"
+        id="date"
+        name="fecha"
+        min="2022-01-01"
+        max="2022-12-31"
+        value="{{fecha}}"
+      />
+    </div>
 
-  <div class="form-group">
-    <label>Hora:</label>
-    <select class="form-select" name="hora">
-      {% for tupla_hora in hora_citas %}
-      <option value="{{ tupla_hora.1 }}">{{ tupla_hora.0 }}</option>
-      {% endfor %}
-    </select>
-  </div>
+    <div class="form-group mb-3 d-inline-flex col-2">
+      <label for="hora">Hora: </label>
+      <select class="form-select" name="hora" id="hora">
+        {% for key in hora_citas %} {% if key == hora %}
+        <option value="key" selected>{{ hora_citas[key] }}</option>
+        {% else %}
+        <option value="{{ key }}">{{ hora_citas[key] }}</option>
+        {% endif %} {% endfor %}
+      </select>
+    </div>
 
-  <div class="form-group">
-    <button class="boton">Buscar</button>
-  </div>
-</form>
+    <div class="form-group mb-3">
+      <button class="btn btn-primary">Buscar</button>
+    </div>
+  </form>
+</div>
 
+{% if fecha and hora != -1 %} {% if resultado_cita %}
 <table class="table table-striped table-hover table-bordered table-sm bg-white">
   <thead>
     <tr>
@@ -81,4 +87,6 @@ messages %} {% for message in messages %}
     {% endfor %}
   </tbody>
 </table>
-{% endblock %}
+{% else %}
+<h2>No se encontraron citas disponbles para los filtros seleccionados.</h2>
+{% endif %} {% endif %} {% endblock %}
