@@ -1,59 +1,57 @@
-{% extends "layout.html" %}
+{% extends "layout.html" %} {% block title %} Registro Psicologo {% endblock
+title %} {% block body %} {% from "_formhelpers.html" import render_field %}
 
-{% block title %}
-    Registro Psicologo
-{% endblock title %}
+<div class="container login-card row col-3 p-0">
+  {% if error %}
+  <div class="alert alert-danger alert-dismissible fade show" role="alert">
+    {{ error }}
+    <button
+      type="button"
+      class="btn-close"
+      data-bs-dismiss="alert"
+      aria-label="Close"
+    ></button>
+  </div>
+  {% endif %}
+  <div class="justify-content-center">
+    <form class="form" action="/registro_psi" method="POST">
+      <div class="col-auto text-center">
+        <img
+          src="{{url_for('static', filename='imagenes/Logo2.jpg') }}"
+          alt="Logo 2"
+        />
+        <h1 class="mt-0">Registro Psicologo</h1>
+      </div>
 
-{% block body %}
+      <div class="form-floating mb-3">
+        {{ render_field(form.nombres, class='form-control') }}
+      </div>
 
-    <div class="registro_psi">
-        <form class=form action="/registro_psi" method="POST">
+      <div class="form-floating mb-3">
+        {{ render_field(form.apellidos, class='form-control') }}
+      </div>
 
-            <h1 class="form_titulo">Registro psicologo</h1><br>
+      <div class="form-floating mb-3">
+        {{ render_field(form.sede, class='form-select') }}
+      </div>
 
-            <div class="form-group">
-                <label>Nombres:</label>
-                <input type="text" class="form-input" name="nombre">
-            </div>
+      <div class="form-floating mb-3">
+        {{ render_field(form.email, class='form-control') }}
+      </div>
 
-            <div class="form-group">
-                <label>Apellidos:</label>
-                <input type="text" class="form-input" name="apellidos">
-            </div>
+      <div class="form-floating mb-3">
+        {{ render_field(form.contrasena, class='form-control') }}
+      </div>
 
-            <div class="form-group">
-                <label>Sede:</label>
-                <select class="form-select" name ="sede">
-                    <option selected>selecciona una sede</option>
-                    <option value="San Miguel">San Miguel</option>
-                    <option value="San Isidro">San Isidro</option>
-                    <option value="Monterrico">Monterrico</option>
-                    <option value="Villa">Villa</option>
-                    </select>
-            </div>
+      <div class="form-floating mb-3">
+        {{ render_field(form.num_colegiado, class='form-control') }}
+      </div>
 
-            <div class="form-group">
-                <label>Email:</label>
-                <input type="text" class="form-input" name="email">
-            </div>
-
-            <div class="form-group">
-                <label>Contraseña:</label>
-                <input type="password" class="form-input" name="contrasena">
-            </div>
-
-            <div class="form-group">
-                <label>numero colegiado:</label>
-                <input type="text" class="form-input" name="num_colegiado">
-            </div>
-
-            <div class="form-group">
-                <button class="boton">Registrar</button>
-            </div>
-
-        </form>
-
-
-    </div>
+      <div class="form-floating mb-3">
+        <button class="btn btn-primary d-block mx-auto col-3">Registrar</button>
+      </div>
+    </form>
+  </div>
+</div>
 
 {% endblock %}

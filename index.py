@@ -18,6 +18,8 @@ import pandas as pd
 from dash.dependencies import Input,Output
 from sklearn.manifold import locally_linear_embedding
 
+import forms
+
 #from text_classif.classification.py import predict_activity
 
 #from pymysql import NULL
@@ -260,8 +262,8 @@ def registrar_actividad():
 
 # Registrar horario psicologo
 @app.route('/registro_horario', methods=['GET', 'POST'])
-def registrar_horario():
-    error = None
+def registrar_horario(error=None):
+    # error = None
     if is_logged():
         id_psicologo = session['usuario']['id_psicologo']
         cur = mysql.connection.cursor()
@@ -270,34 +272,37 @@ def registrar_horario():
             
             fecha = request.form['fecha']
             hora = int(request.form['hora'])
-
-            h_inicio = datetime.timedelta(hours=hora)
-            h_fin = datetime.timedelta(hours=hora + 1)
             
-            # Ya existe ese horario
-            cur.execute("""
-                SELECT 1
-                FROM horario h
-                WHERE h.id_psicologo = %s
-                AND h.dia = %s
-                AND h.h_inicio = %s
-                """,
-                [id_psicologo, fecha, h_inicio]
-            )
-            validar = cur.fetchone()
-            
-            if validar is None:
-                cur.execute("""
-                    INSERT INTO `horario` 
-                    (`dia`, `h_inicio`, `h_fin`, `id_psicologo`, `estado`) 
-                    VALUES
-                    (%s,%s,%s,%s, %s)
-                    """,
-                    [ fecha, h_inicio, h_fin, id_psicologo, '0'])
-                mysql.connection.commit()
-                flash('Se registro el horario correctamente.')
+            if hora == -1 or not fecha:
+                error="Debe ingresar todos los campos para registrar el horario."
             else:
-                error='Ya tiene un horario registrado en esa fecha y hora.'
+                h_inicio = datetime.timedelta(hours=hora)
+                h_fin = datetime.timedelta(hours=hora + 1)
+                
+                # Ya existe ese horario
+                cur.execute("""
+                    SELECT 1
+                    FROM horario h
+                    WHERE h.id_psicologo = %s
+                    AND h.dia = %s
+                    AND h.h_inicio = %s
+                    """,
+                    [id_psicologo, fecha, h_inicio]
+                )
+                validar = cur.fetchone()
+                
+                if validar is None:
+                    cur.execute("""
+                        INSERT INTO `horario` 
+                        (`dia`, `h_inicio`, `h_fin`, `id_psicologo`, `estado`) 
+                        VALUES
+                        (%s,%s,%s,%s, %s)
+                        """,
+                        [ fecha, h_inicio, h_fin, id_psicologo, '0'])
+                    mysql.connection.commit()
+                    flash('Se registro el horario correctamente.')
+                else:
+                    error='Ya tiene un horario registrado en esa fecha y hora.'
         
         cur.execute(
             """
@@ -316,6 +321,37 @@ def registrar_horario():
                                                         resultado_horario=resultado_horario,
                                                         error=error,
                                                         current_date=current_date)
+    else:
+        return redirect(url_for('login'))
+
+# Eliminar horario
+@app.route('/eliminar_horario', methods=['POST'])
+def eliminar_horario():
+    error = None
+    if is_logged():
+        if request.method == 'POST':
+            
+            id_horario = request.form['id_horario']
+            estado = request.form['estado']
+
+            # borrar
+            estado = '0'
+
+            if estado == '1':
+                error='No puede eliminar el horario de la cita cuando esta en estado RESERVADO.'
+            else:
+                cur = mysql.connection.cursor()
+                cur.execute("""
+                        DELETE FROM horario WHERE `horario`.`id_horario` = %s
+                        """,
+                        [id_horario])
+                
+                mysql.connection.commit()
+                cur.close()
+                
+                flash('Se elimino el horario correctamente.')
+
+        return redirect(url_for('registrar_horario', error=error))
     else:
         return redirect(url_for('login'))
 
@@ -358,6 +394,7 @@ def registrar_cita():
                 [id_horario]
             )
             mysql.connection.commit()
+            cur.close()
 
             flash('Se registro la cita correctamente')
         else:
@@ -788,19 +825,21 @@ def test_estres():
 # Registro Alumno:
 @app.route('/registro_alumno', methods=['GET','POST'])
 def registro_alumno():
-    if request.method == 'POST':
-
+    
+    form = forms.AlumnoRegForm(request.form)
+    if request.method == 'POST' and form.validate():
+        
         # tabla persona
-        nombres = request.form['nombres']
-        apellidos = request.form['apellidos']
-        email = request.form['email']
-        sede = request.form['sede']
-        contrasena = request.form['contrasena']
+        nombres = form.nombres.data
+        apellidos = form.apellidos.data
+        email = form.email.data
+        sede = form.sede.data
+        contrasena = form.contrasena.data
         # tabla alumno
-        carrera = request.form['carrera']
-        sexo = request.form['sexo']
-        ciclo = request.form['ciclo']
-        edad = request.form['edad']
+        carrera = form.carrera.data
+        sexo = form.sexo.data
+        ciclo = form.ciclo.data
+        edad = form.edad.data
 
         #Para BD sin herencia
         cur = mysql.connection.cursor()
@@ -808,11 +847,12 @@ def registro_alumno():
             "INSERT INTO alumno (carrera, edad, ciclo, nombres, apellidos, email, contrasena, sexo, sede) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)",
             (carrera, edad, ciclo, nombres, apellidos, email, contrasena, sexo, sede))
         mysql.connection.commit()
+        cur.close()
 
         flash('Usuario creado correctamente. Ingrese con su email y contraseña.')
         return redirect(url_for('login'))
     
-    return render_template('registro_alumno.html')
+    return render_template('registro_alumno.html', form=form)
 
 # Editar Perfil Alumno
 @app.route('/editar_perfil_a', methods=['GET','POST'])
@@ -846,7 +886,7 @@ def editar_perfil_a():
             edad = alumno['edad'] if not request.form['edad'] else request.form['edad']
 
             #Para BD sin herencia
-            cur = mysql.connection.cursor()
+            # cur = mysql.connection.cursor()
             cur.execute(
                 "UPDATE alumno set carrera=%s, edad=%s, ciclo=%s, nombres=%s, apellidos=%s, email=%s, contrasena=%s, sexo=%s, sede=%s WHERE id_alumno=%s",
                 (carrera, edad, ciclo, nombres, apellidos, email, contrasena, sexo, sede, id_alumno))
@@ -1134,15 +1174,18 @@ def update_graf_barra_alumno(value,value2):
 # registro psicologo:
 @app.route('/registro_psi', methods=['GET','POST'])
 def registro_psi():
-    if request.method == 'POST':
+
+    form = forms.PsicoRegForm(request.form)
+    if request.method == 'POST' and form.validate():
+
         # tabla persona
-        nombre = request.form['nombre']
-        apellidos = request.form['apellidos']
-        email = request.form['email']
-        sede = request.form['sede']
-        contrasena = request.form['contrasena']
+        nombres = form.nombres.data
+        apellidos = form.apellidos.data
+        email = form.email.data
+        sede = form.sede.data
+        contrasena = form.contrasena.data
         # tabla psicologo
-        num_colegiado = request.form['num_colegiado']
+        num_colegiado = form.num_colegiado.data
 
         cur = mysql.connection.cursor()
         cur.execute("""
@@ -1151,12 +1194,15 @@ def registro_psi():
             VALUES
             (%s,%s,%s,%s,%s,%s)
         """,
-            [num_colegiado, nombre, apellidos, email, contrasena, sede])
+            [num_colegiado, nombres, apellidos, email, contrasena, sede])
 
         mysql.connection.commit()
+        cur.close()
+        
+        flash('Usuario creado correctamente. Ingrese con su email y contraseña.')
         return redirect(url_for('login'))
-    else:
-        return render_template('registro_psi.html')
+    
+    return render_template('registro_psi.html', form=form)
 
 @app.route('/logout')
 def logout():
