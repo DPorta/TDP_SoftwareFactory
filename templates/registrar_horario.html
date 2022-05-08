@@ -26,10 +26,10 @@ get_flashed_messages() %} {% if messages %} {% for message in messages %}
 <div class="row justify-content-start">
   <form action="{{ url_for('registrar_horario') }}" method="POST">
     <div class="form-group mb-3">
-      <label for="start">Fecha:</label>
+      <label for="fecha">Fecha:</label>
       <input
         type="date"
-        id="start"
+        id="fecha"
         name="fecha"
         value="{{ current_date.strftime('%Y-%m-%d') }}"
         min="2022-01-01"
