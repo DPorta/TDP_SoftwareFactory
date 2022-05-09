@@ -32,11 +32,11 @@ app.config['MYSQL_HOST'] = '127.0.0.1'
 
 app.config['MYSQL_USER'] = 'root'
 # app.config['MYSQL_USER'] = 'u8wtjekkvx6ew9di'
-#app.config['MYSQL_PASSWORD'] = ''
+app.config['MYSQL_PASSWORD'] = ''
 # app.config['MYSQL_PASSWORD'] = 'dQVujvVE1krN6iBoLBDi'
 # Nombre de la BD en phpmyadmin
-app.config['MYSQL_DB'] = '2021213_DB_SINHERENCIA'
-#app.config['MYSQL_DB'] = 'tdp_sw_s6'
+#app.config['MYSQL_DB'] = '2021213_DB_SINHERENCIA'
+app.config['MYSQL_DB'] = 'tdp_sw_s6'
 # app.config['MYSQL_DB'] = 'bdwumf34burl3arg3wug'
 # CURSOR
 app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
@@ -1009,32 +1009,50 @@ dash_app3=dash.Dash(server=app,name="Dashboard", url_base_pathname="/graf_psi_li
 dash_app3.layout=html.Div(
             children=[
                 html.H1(children="Gráfico de Línea"),
-                html.H3('Seleccione el nombre de variable para ver el gráfico lineal:'),
+                html.H3('Seleccione el nombre de variable:'),
                 dcc.Dropdown(
                     id="line_dropdown",
                        options=[
-                           {'label': 'General', 'value':0},
                            {'label': 'Ansiedad', 'value':1},
                            {'label': 'Depresión', 'value':2},
                            {'label': 'Estrés', 'value':3}
                        ],
-                       value=0
+                       value=1
                    ),
-                html.H3('Seleccione el Filtro'),
+                html.H3('Seleccione la carrera'),
                 dcc.Dropdown(
                     id="line_filter",
-                       options=[
-                           {'label': 'General', 'value':0},
-                           {'label': 'Carrera', 'value':1},
-                           {'label': 'Ciclo', 'value':2},
-                           {'label': 'Sede', 'value':3},
-                           {'label': 'Sexo', 'value':4},
-                           {'label': 'Edad', 'value':5}
+                    options=[
+
+                           {'label': 'Ingenieria de sistemas de informacion', 'value':'Ingenieria de sistemas de informacion'},
+                           {'label': 'Ingenieria de software', 'value':'Ingenieria de software'}
                        ],
-                       value=0
+                       value='Ingenieria de sistemas de informacion'
                    ),
+                html.H3('Seleccione el sexo:'),
+                dcc.Dropdown(
+                    id="checklist",
+                       options=[
+
+                           {'label': 'Masculino', 'value':'Masculino'},
+                           {'label': 'Femenino', 'value':'Femenino'}
+                       ],
+                       value='Masculino'
+                   ),
+                html.H3('Seleccione la sede:'),
+                dcc.Dropdown(
+                    id="checklist_2",
+                       options=[
+                           {'label': 'Monterrico', 'value':'Monterrico'},
+                           {'label': 'San Isidro', 'value':'San Isidro'},
+                           {'label': 'San Miguel', 'value':'San Miguel'},
+                           {'label': 'Villa', 'value':'Villa'}
+                       ],
+                       value='Monterrico'
+                   ),
+                html.Hr(),
                 dcc.Graph(
-                    id="graf-line",
+                    id="graf-line2",
                     figure={}
                                  
                 ),
@@ -1042,59 +1060,41 @@ dash_app3.layout=html.Div(
             ], className="main-div"
         )
 @dash_app3.callback(
-    Output('graf-line', component_property='figure'),
+    Output('graf-line2', component_property='figure'),
     Input('line_dropdown', component_property='value'),
-    Input('line_filter', component_property='value')
+    Input('line_filter', component_property='value'),
+    Input('checklist', component_property='value'),
+    Input('checklist_2', component_property='value')
 )
-def update_graf_line(value,filter):
-    global l_car, l_ciclo, l_sede, l_sexo, l_edad
-    global dfp2
+def update_graf_line(value,filter,sex,sed):
+    global asd
+    print(value, filter, sex, sed)
 
-    if value==0:
-        if filter==0:
-            figure=px.line(dfp2, x="nivel_variable", y="Total", labels={'nivel_variable':'Nivel de Variable'}, color='Variable' )
-        else:
-            if filter==1:
-                aux="Carrera"
-                dft=l_car
-            elif filter==2:
-                aux="Ciclo"
-                dft=l_ciclo
-            elif filter==3:
-                aux="Sede"
-                dft=l_sede
-            elif filter==4:
-                aux="Sexo"
-                dft=l_sexo
-            else:
-                aux="Edad"
-                dft=l_edad
-            figure=px.line(dft, x="nivel_variable", y="Total", color=aux, labels={'nivel_variable':'Nivel de Variable'})
-    else:
-        if filter==0:
-            ndw=dfp2[dfp2['id_escala']==value]
-            figure=px.line(ndw, x="nivel_variable", y="Total", labels={'nivel_variable':'Nivel de Variable'}, color='Variable' )
-        else:
-            if filter==1:
-                aux="Carrera"
-                dft=l_car[l_car['id_escala']==value]
-            elif filter==2:
-                aux="Ciclo"
-                dft=l_ciclo[l_ciclo['id_escala']==value]
-            elif filter==3:
-                aux="Sede"
-                dft=l_sede[l_sede['id_escala']==value]
-            elif filter==4:
-                aux="Sexo"
-                dft=l_sexo[l_sexo['id_escala']==value]
-            else:
-                aux="Edad"
-                dft=l_edad[l_edad['id_escala']==value]            
-            figure=px.line(dft, x="nivel_variable", y="Total", color=aux, labels={'nivel_variable':'Nivel de Variable'})
-            
-    print(value, filter)
+    newColumn=pd.DataFrame(columns=['mes_n'])
+    months=["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"]
 
-    return figure
+    for i in range (len(asd)):
+        for j in range(len(months)):
+            if asd['Mes'][i] == j+1:
+                newColumn.loc[i] =months[j]
+
+    asd["Mes_N"]=newColumn['mes_n']
+
+    tempo=asd
+
+    tempo=tempo[tempo['id_escala']==value]
+    tempo=tempo[tempo['Carrera']==filter]
+    tempo=tempo[tempo['Sexo']==sex]
+    tempo=tempo[tempo['Sede']==sed]
+    tempo.sort_values(by=['Mes'], inplace=True, ascending=True)
+    tempo2=tempo.groupby(["Mes","Mes_N","nivel_variable"])["Mes"].count().reset_index(name="Total")
+    print(tempo2)
+
+    figure2=px.line(tempo2, x="Mes_N", y="Total", labels={'nivel_variable':'Nivel de Variable'}, color='nivel_variable', markers=True)
+
+    print(tempo)
+    
+    return figure2
 
 
 #######################################################################
@@ -1261,103 +1261,22 @@ def login():
 def sesion_psicologo():
     if is_logged():
         cur = mysql.connection.cursor()
-        id_psi = session['usuario']['id_psicologo']
 
-        #Total por Carrera
+        #Line Graph
         cur.execute("""
-        SELECT a.id_escala, a.Ddesarrollo, a.puntaje, a.id_alumno, a.nivel_variable, e.nom_variable as Variable,
-            o.carrera as Carrera, COUNT(o.carrera) as Total
-        FROM escala AS e
-        JOIN alumno_escala AS a
-            ON e.id_escala = a.id_escala  
-        JOIN alumno AS o
-            ON o.id_alumno = a.id_alumno
-        GROUP BY a.nivel_variable, o.carrera
-        """)
-        d_car = cur.fetchall()
-
-        global l_car
-        l_car=pd.DataFrame(d_car, columns=['id_escala', 'Ddesarrollo', 'puntaje','id_alumno','nivel_variable', 'Variable',
-                                                'Carrera', 'Total'])
-
-        #Total por Ciclo
-        cur.execute("""
-        SELECT a.id_escala, a.Ddesarrollo, a.puntaje, a.id_alumno, a.nivel_variable, e.nom_variable as Variable,
-            o.ciclo as Ciclo, COUNT(o.ciclo) as Total
-        FROM escala AS e
-        JOIN alumno_escala AS a
-            ON e.id_escala = a.id_escala  
-        JOIN alumno AS o
-            ON o.id_alumno = a.id_alumno
-        GROUP BY a.nivel_variable, o.ciclo
-        """)
-        d_ciclo = cur.fetchall()
-
-        global l_ciclo
-        l_ciclo=pd.DataFrame(d_ciclo, columns=['id_escala', 'Ddesarrollo', 'puntaje','id_alumno','nivel_variable', 'Variable',
-                                                'Ciclo', 'Total'])
-        #Total por Sede
-        cur.execute("""
-        SELECT a.id_escala, a.Ddesarrollo, a.puntaje, a.id_alumno, a.nivel_variable, e.nom_variable as Variable,
-            o.sede as Sede, COUNT(o.sede) as Total
-        FROM escala AS e
-        JOIN alumno_escala AS a
-            ON e.id_escala = a.id_escala  
-        JOIN alumno AS o
-            ON o.id_alumno = a.id_alumno
-        GROUP BY a.nivel_variable, o.sede
-        """)
-        d_sede = cur.fetchall()
-
-        global l_sede
-        l_sede=pd.DataFrame(d_sede, columns=['id_escala', 'Ddesarrollo', 'puntaje','id_alumno','nivel_variable', 'Variable',
-                                                'Sede', 'Total'])
-        #Total por Sexo
-        cur.execute("""
-        SELECT a.id_escala, a.Ddesarrollo, a.puntaje, a.id_alumno, a.nivel_variable, e.nom_variable as Variable,
-            o.sexo as Sexo, COUNT(o.sexo) as Total
-        FROM escala AS e
-        JOIN alumno_escala AS a
-            ON e.id_escala = a.id_escala  
-        JOIN alumno AS o
-            ON o.id_alumno = a.id_alumno
-        GROUP BY a.nivel_variable, o.sexo
-        """)
-        d_sexo = cur.fetchall()
-
-        global l_sexo
-        l_sexo=pd.DataFrame(d_sexo, columns=['id_escala', 'Ddesarrollo', 'puntaje','id_alumno','nivel_variable', 'Variable',
-                                               'Sexo', 'Total'])
-
-        #Total por EDAD
-        cur.execute("""
-        SELECT a.id_escala, a.Ddesarrollo, a.puntaje, a.id_alumno, a.nivel_variable, e.nom_variable as Variable,
-            o.edad as Edad, COUNT(o.edad) as Total
-        FROM escala AS e
-        JOIN alumno_escala AS a
-            ON e.id_escala = a.id_escala  
-        JOIN alumno AS o
-            ON o.id_alumno = a.id_alumno
-        GROUP BY a.nivel_variable, o.edad
-        """)
-        d_edad = cur.fetchall()
-
-        global l_edad
-        l_edad=pd.DataFrame(d_edad, columns=['id_escala', 'Ddesarrollo', 'puntaje','id_alumno','nivel_variable', 'Variable',
-                                               'Edad', 'Total'])
-
-        #PARA CONTAR EL TOTAL POR NIVEL DE VARIABLE
-        cur.execute("""
-        SELECT a.id_escala, a.Ddesarrollo, a.puntaje, a.id_alumno, a.nivel_variable, COUNT(a.nivel_variable) as Total, e.nom_variable as Variable
-        FROM alumno_escala AS a 
+        SELECT a.id_escala, a.Ddesarrollo, a.puntaje, a.id_alumno, a.nivel_variable, e.nom_variable as Variable, 
+        EXTRACT(month FROM a.Ddesarrollo) AS Mes,o.sexo as Sexo,o.sede as Sede,o.carrera as Carrera
+        FROM alumno_escala AS a
         JOIN escala AS e 
             ON a.id_escala = e.id_escala 
-        GROUP BY a.nivel_variable
-        """)
-        total_nivel_variable = cur.fetchall()
+        JOIN alumno AS o
+            ON o.id_alumno = a.id_alumno
 
-        global dfp2
-        dfp2=pd.DataFrame(total_nivel_variable, columns=['id_escala', 'Ddesarrollo', 'puntaje','id_alumno','nivel_variable', 'Total', 'Variable'])
+        """)
+        dsa = cur.fetchall()
+
+        global asd
+        asd=pd.DataFrame(dsa, columns=['id_escala', 'Ddesarrollo', 'puntaje','id_alumno','nivel_variable', 'Variable','Mes','Sexo','Sede','Carrera'])
 
         #DATOS PIE CHART
         cur.execute("""SELECT a.id_escala, a.Ddesarrollo, a.puntaje, a.id_alumno, a.nivel_variable, e.nom_variable AS Variable,
