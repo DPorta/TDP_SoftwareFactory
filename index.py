@@ -35,8 +35,8 @@ app.config['MYSQL_USER'] = 'root'
 app.config['MYSQL_PASSWORD'] = ''
 # app.config['MYSQL_PASSWORD'] = 'dQVujvVE1krN6iBoLBDi'
 # Nombre de la BD en phpmyadmin
-#app.config['MYSQL_DB'] = '2021213_DB_SINHERENCIA'
-app.config['MYSQL_DB'] = 'tdp_sw_s6'
+app.config['MYSQL_DB'] = '2021213_DB_SINHERENCIA'
+# app.config['MYSQL_DB'] = 'tdp_sw_s6'
 # app.config['MYSQL_DB'] = 'bdwumf34burl3arg3wug'
 # CURSOR
 app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
@@ -643,7 +643,6 @@ def test_ansiedad():
                request.form.get('6') is None or \
                request.form.get('7') is None:
                 error = 'Completa todos los campos necesarios, por favor'
-                return render_template('test_ansiedad.html', error=error)
             else:
 
                 p1 = int(request.form.get('1'))
@@ -683,10 +682,10 @@ def test_ansiedad():
                 print("Se registró la escala correctamente.")
                 cur.close()
                 return redirect(ruta)
-        else:
-            return render_template('test_ansiedad.html',
-                                    preguntas=preguntas_ansiedad,
-                                    respuestas_test=respuestas_test)
+        return render_template('test_ansiedad.html',
+                                preguntas=preguntas_ansiedad,
+                                respuestas_test=respuestas_test,
+                                error=error)
     else:
         print('No usuario')
         return redirect(url_for('login'))
@@ -707,7 +706,6 @@ def test_depresion():
                request.form.get('6') is None or \
                request.form.get('7') is None:
                 error = 'Completa todos los campos necesarios, por favor'
-                return render_template('test_depresion.html', error=error)
             else:
 
                 p1 = int(request.form.get('1'))
@@ -748,10 +746,11 @@ def test_depresion():
                 print("Se registró la escala correctamente.")
                 cur.close()
                 return redirect(ruta)
-        else:
-            return render_template('test_depresion.html',
-                                    preguntas=preguntas_depresion,
-                                    respuestas_test=respuestas_test)
+
+        return render_template('test_depresion.html',
+                                preguntas=preguntas_depresion,
+                                respuestas_test=respuestas_test,
+                                error=error)
     else:
         print('No usuario')
         return redirect(url_for('login'))
@@ -773,7 +772,6 @@ def test_estres():
                request.form.get('6') is None or \
                request.form.get('7') is None:
                 error = 'Completa todos los campos necesarios, por favor'
-                return render_template('test_estres.html', error=error)
             else:
 
                 p1 = int(request.form.get('1'))
@@ -813,10 +811,11 @@ def test_estres():
                 print("Se registró la escala correctamente.")
                 cur.close()
                 return redirect(ruta)
-        else:
-            return render_template('test_estres.html',
-                                    preguntas=preguntas_estres,
-                                    respuestas_test=respuestas_test)
+        
+        return render_template('test_estres.html',
+                                preguntas=preguntas_estres,
+                                respuestas_test=respuestas_test,
+                                error=error)
     else:
         print('No usuario')
         return redirect(url_for('login'))
@@ -891,6 +890,7 @@ def editar_perfil_a():
                 "UPDATE alumno set carrera=%s, edad=%s, ciclo=%s, nombres=%s, apellidos=%s, email=%s, contrasena=%s, sexo=%s, sede=%s WHERE id_alumno=%s",
                 (carrera, edad, ciclo, nombres, apellidos, email, contrasena, sexo, sede, id_alumno))
             mysql.connection.commit()
+            flash('Cambios guardados correctamente.')
 
             cur.execute(
                 """
