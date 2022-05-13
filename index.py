@@ -35,8 +35,8 @@ app.config['MYSQL_USER'] = 'root'
 app.config['MYSQL_PASSWORD'] = ''
 # app.config['MYSQL_PASSWORD'] = 'dQVujvVE1krN6iBoLBDi'
 # Nombre de la BD en phpmyadmin
-app.config['MYSQL_DB'] = '2021213_DB_SINHERENCIA'
-# app.config['MYSQL_DB'] = 'tdp_sw_s6'
+#app.config['MYSQL_DB'] = '2021213_DB_SINHERENCIA'
+app.config['MYSQL_DB'] = 'tdp_sw_s6'
 # app.config['MYSQL_DB'] = 'bdwumf34burl3arg3wug'
 # CURSOR
 app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
@@ -106,7 +106,7 @@ def is_logged():
     return False
 
 # Listar citas del psicologo
-@app.route('/listar_citas', methods=['GET'])
+@app.route('/listar_citas', methods=['GET','POST'])
 def listar_citas():
     error = None
     if is_logged():
@@ -124,13 +124,104 @@ def listar_citas():
             [id_psicologo]
         )
         lista_citas = cur.fetchall()
-        cur.close()
+
+        ####################################
+            
+        if request.method == 'POST':
+            
+                id_data_alumno=request.form['id_data_alumno']
+                print(id_data_alumno)
+        
+                cur.execute("""SELECT a.id_escala, a.Ddesarrollo, a.puntaje, a.id_alumno, a.nivel_variable, e.nom_variable AS Variable,
+                EXTRACT(month FROM a.Ddesarrollo) AS Meses
+                FROM alumno_escala AS a JOIN escala AS e ON a.id_escala = e.id_escala
+                WHERE a.id_alumno = %s""", (id_data_alumno,))
+                data_alumno = cur.fetchall()
+                global lc_alumno  
+                lc_alumno=pd.DataFrame(data_alumno, columns=['id_escala', 'Ddesarrollo', 'puntaje','id_alumno','nivel_variable', 'Variable', 'Meses'])
+
+                return redirect(url_for('/datos_alumno/'))
+
+        
         return render_template('listar_citas.html',
                                 error=error,
                                 lista_citas=lista_citas)
     else:
         return redirect(url_for('login'))
 
+#Ver Datos Alumnos
+dash_app4=dash.Dash(server=app,name="Datos Alumno", url_base_pathname="/datos_alumno/")
+dash_app4.layout=html.Div(
+               children=[
+                   html.H1(children="Gráfico de barras"),
+                   html.H3(children="Selecciona el nombre de la variable sobre la cual desea ves sus datos:"),
+                   dcc.Dropdown(
+                       id="tipo_escala_dropdown2",
+                       options=[
+                           {'label': 'General', 'value':0},
+                           {'label': 'Ansiedad', 'value':1},
+                           {'label': 'Depresión', 'value':2},
+                           {'label': 'Estrés', 'value':3}
+                       ],
+                       value=0
+                   ),
+                   html.H3(children="Selecciona el mes que deseas visualizar:"),
+                   dcc.Dropdown(
+                       id="mes_dropdown2",
+                       options=[
+                            {'label': 'General', 'value':0},
+                            {'label': 'Enero', 'value':1},
+                            {'label': 'Febrero', 'value':2},
+                            {'label': 'Marzo', 'value':3},
+                            {'label': 'Abril', 'value':4},
+                            {'label': 'Mayo', 'value':5},
+                            {'label': 'Junio', 'value':6},
+                            {'label': 'Julio', 'value':7},
+                            {'label': 'Agosto', 'value':8},
+                            {'label': 'Septiembre', 'value':9},
+                            {'label': 'Octubre', 'value':10},
+                            {'label': 'Noviembre', 'value':11},
+                            {'label': 'Diciembre', 'value':12}
+                       ],
+                       value=0
+                   ),
+                   dcc.Graph(
+                       id="graf-barra-alumno2",
+                       figure={}              
+                   ),
+                   html.A(children="Volver", href="/listar_citas"),
+               ], className="main-div"
+           )
+@dash_app4.callback(
+    Output('graf-barra-alumno2', component_property='figure'),
+    Input('tipo_escala_dropdown2', component_property='value'),
+    Input('mes_dropdown2', component_property='value')
+)
+def update_graf_barra_alumno(value,value2):
+    global lc_alumno
+    if value==0:
+        if value2==0:
+            ndw=lc_alumno
+            figure=px.bar(ndw, x="Variable", y="puntaje", color="nivel_variable", hover_data=['Ddesarrollo'], 
+                labels={'nivel_variable':'Nivel de Variable', 'puntaje':'Puntaje Obtenido','Variable':'Variables','Ddesarrollo':'Fecha'})
+        else:
+            ndw=lc_alumno[lc_alumno['Meses']==value2]
+            figure=px.bar(ndw, x="Variable", y="puntaje", color="nivel_variable", hover_data=['Ddesarrollo'], 
+                labels={'nivel_variable':'Nivel de Variable', 'puntaje':'Puntaje Obtenido','Variable':'Variables','Ddesarrollo':'Fecha'})
+    else:
+        if value2==0:
+            ndw=lc_alumno[lc_alumno['id_escala']==value]
+            figure=px.bar(ndw, x="nivel_variable", y="puntaje", color="nivel_variable", hover_data=['Ddesarrollo'], 
+                labels={'nivel_variable':'Nivel de Variable', 'puntaje':'Puntaje Obtenido','Ddesarrollo':'Fecha'})
+        else:
+            ndw=lc_alumno[lc_alumno['id_escala']==value]
+            ndw=ndw[ndw['Meses']==value2]
+            figure=px.bar(ndw, x="nivel_variable", y="puntaje", color="nivel_variable", hover_data=['Ddesarrollo'], 
+                labels={'nivel_variable':'Nivel de Variable', 'puntaje':'Puntaje Obtenido','Ddesarrollo':'Fecha'})
+    
+    return figure
+
+#####################################################################################################
 # Eliminar actividad
 @app.route('/eliminar_actividad', methods=['POST'])
 def eliminar_actividad():
@@ -908,7 +999,6 @@ def editar_perfil_a():
         return redirect(url_for('login'))
 
 ################################################################################################################################################
-#CUALQUIER ERROR ELIMINAR LO QUE ESTE DENTRO DE LOS ASTERISCOS
 #Estado Mental
 @app.route('/estado_mental/', methods=['GET','POST'])
 def estado_mental():

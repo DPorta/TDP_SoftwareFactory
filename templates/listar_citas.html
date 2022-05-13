@@ -39,14 +39,14 @@ endblock title %} {% block content %} {% with messages = get_flashed_messages()
       <td>{{ cita['apellidos'] + ', ' + cita['nombres'] }}</td>
       <td>
         <!-- <form action="{{ url_for('registrar_cita') }}" method="POST"> -->
-        <form>
+        <form method="POST">
           <input
             type="hidden"
             id="id_alumno"
             name="id_alumno"
             value="{{ cita['id_alumno'] }}"
           />
-          <a href="/graf_barra_alumno/">Ver dashboard</a>
+          <button  type="submit" class="col-auto btn btn-primary" name="id_data_alumno" value="{{ cita['id_alumno'] }}" >Ver dashboard</button>
         </form>
       </td>
     </tr>
