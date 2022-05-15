@@ -46,7 +46,7 @@ get_flashed_messages() %} {% if messages %} {% for message in messages %}
       ></textarea>
     </div>
 
-    <div class="form-group mb-3">
+    <!-- <div class="form-group mb-3">
       <label>Fecha:</label>
       <input
         type="date"
@@ -65,15 +65,15 @@ get_flashed_messages() %} {% if messages %} {% for message in messages %}
         var x = document.getElementById('fecha').disabled;
         if (x == false) {
           document.getElementById('fecha').disabled = true;
-          //document.getElementById('fecha').value = null;
+          
         }
         else {
           document.getElementById('fecha').disabled = false;
         }
       }"
       />
-      <label class="form-check-label" for="check-fecha"> Sin fecha? </label>
-    </div>
+      <label class="form-check-label" for="check-fecha"> Sin fecha? </label> 
+    </div> -->
 
     <div class="form-group mb-3">
       <button class="btn btn-primary">Registrar</button>

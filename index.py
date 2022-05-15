@@ -19,6 +19,8 @@ from dash.dependencies import Input,Output
 from sklearn.manifold import locally_linear_embedding
 
 import forms
+import detection_date
+import clasificacion_texto
 
 #from text_classif.classification.py import predict_activity
 
@@ -35,8 +37,8 @@ app.config['MYSQL_USER'] = 'root'
 app.config['MYSQL_PASSWORD'] = ''
 # app.config['MYSQL_PASSWORD'] = 'dQVujvVE1krN6iBoLBDi'
 # Nombre de la BD en phpmyadmin
-#app.config['MYSQL_DB'] = '2021213_DB_SINHERENCIA'
-app.config['MYSQL_DB'] = 'tdp_sw_s6'
+app.config['MYSQL_DB'] = '2021213_DB_SINHERENCIA'
+# app.config['MYSQL_DB'] = 'tdp_sw_s6'
 # app.config['MYSQL_DB'] = 'bdwumf34burl3arg3wug'
 # CURSOR
 app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
@@ -246,58 +248,8 @@ def eliminar_actividad():
     else:
         return redirect(url_for('login'))
 
+
 # Registrar actividad
-## ESTO ES TEMPORAL
-## TODO: MOVER A UN ARCHIVO A PARTE
-### Clasificacion de texto
-###############################################
-import joblib
-
-tr = joblib.load('text_classif/tfidf.pkl')
-clf = joblib.load('text_classif/SVM.pkl')
-
-def predict_activity(activity_text):
-    value = tr.transform([activity_text])
-    return clf.predict(value)
-################################################
-
-### Deteccion de fecha
-################################################
-# from sutime import SUTime
-# import string
-# #sutime = SUTime(mark_time_ranges=True, include_range=True,language='spanish')
-# sutime = SUTime(language='spanish')
-# dias_semana = [ 'lunes', 'martes', 'miércoles','miercoles', 'jueves', 'viernes', 'sabado', 'sábado', 'domingo' ]
-# meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','setiembre','septiembre','octubre','noviembre','diciembre']
-
-# def get_date_by_points(arr_dates):
-#     maxi, maxpoints = -1, 0
-#     for index in range(len(arr_dates)):
-#         obj_date = arr_dates[index]
-
-#         ## preprocesamiento del texto
-#         text_date = obj_date['text'].lower().strip()
-#         for c in (string.punctuation + ' \n'):
-#             text_date = text_date.replace(c, " ")
-#         text_date = text_date.split(' ')
-        
-#         ## Puntaje para la fecha
-#         points = 0
-#         for word in text_date:
-#             if word.isdigit():
-#                 points += 1
-#             elif word in (dias_semana + meses):
-#                 points += 2
-
-#         if points > maxpoints:
-#             maxi = index
-#             maxpoints = points
-    
-#     if maxi == -1:
-#         return None
-#     return arr_dates[maxi]['value']
-
-
 ################################################
 # Registrar actividades por parte del psicologo
 @app.route('/registrar_actividad', methods=['GET', 'POST'])
@@ -310,18 +262,26 @@ def registrar_actividad():
             
             nom_actividad = request.form['nom_actividad']
             desc_actividad = request.form['desc_actividad']
-            variable = predict_activity(desc_actividad)[0]
+            variable = clasificacion_texto.predict_activity(desc_actividad)[0]
 
-            fecha = request.form.get('fecha')
-            check_fecha = request.form.get('check_fecha')
+            ###############################################################
+            ## Fecha como input
+            # fecha = request.form.get('fecha')
+            # check_fecha = request.form.get('check_fecha')
+
+            ###############################################################
+
 
             print(nom_actividad, desc_actividad)
             print('variable:',variable)
 
-            # arr_dates = sutime.parse(desc_actividad.lower())
-            # fecha = get_date_by_points(arr_dates)
-            # print('posibles fechas\n', sutime.parse(desc_actividad))
-            # print(fecha)
+            ################################################################
+            ## Deteccion de fechas
+            arr_dates = detection_date.get_date_list(desc_actividad.lower())
+            fecha = detection_date.get_date_by_points(arr_dates)
+            print('posibles fechas\n', arr_dates)
+            print(fecha)
+            ################################################################
 
             cur.execute("""
                     INSERT INTO `actividades` 
