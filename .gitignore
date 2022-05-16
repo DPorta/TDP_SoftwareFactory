@@ -1,3 +1,7 @@
+# USER
+.dockerignore
+Dockerfile
+
 # entorno virtual
 venv/
 # User-specific stuff

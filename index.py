@@ -19,8 +19,8 @@ from dash.dependencies import Input,Output
 from sklearn.manifold import locally_linear_embedding
 
 import forms
-import detection_date
 import clasificacion_texto
+# import detection_date
 
 #from text_classif.classification.py import predict_activity
 
@@ -264,23 +264,22 @@ def registrar_actividad():
             desc_actividad = request.form['desc_actividad']
             variable = clasificacion_texto.predict_activity(desc_actividad)[0]
 
-            ###############################################################
-            ## Fecha como input
-            # fecha = request.form.get('fecha')
-            # check_fecha = request.form.get('check_fecha')
-
-            ###############################################################
-
-
             print(nom_actividad, desc_actividad)
             print('variable:',variable)
 
+            ###############################################################
+            ## Fecha como input
+            fecha = request.form.get('fecha')
+            check_fecha = request.form.get('check_fecha')
+
+            ###############################################################
+
             ################################################################
             ## Deteccion de fechas
-            arr_dates = detection_date.get_date_list(desc_actividad.lower())
-            fecha = detection_date.get_date_by_points(arr_dates)
-            print('posibles fechas\n', arr_dates)
-            print(fecha)
+            # arr_dates = detection_date.get_date_list(desc_actividad.lower())
+            # fecha = detection_date.get_date_by_points(arr_dates)
+            # print('posibles fechas\n', arr_dates)
+            # print(fecha)
             ################################################################
 
             cur.execute("""
