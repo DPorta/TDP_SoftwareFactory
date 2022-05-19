@@ -585,7 +585,7 @@ def visualizar_resultado(id_alumno_escala):
     if is_logged():
         print('id_alumno_escala:', id_alumno_escala)
         actividades = None
-        name_emoticon = None
+        es_moderado_o_mas = None
         cur = mysql.connection.cursor()
 
         # Obtenemos el resultado del alumno de la tabla alumno escala
@@ -623,46 +623,27 @@ def visualizar_resultado(id_alumno_escala):
 
         cur.close()
 
-        ## Logica para la imagen
-        if id_escala == 1: ## ansiedad
-            if puntaje<4: 
-                name_emoticon=img_emoticones[0]
-            elif puntaje==4:
-                name_emoticon=img_emoticones[1]
-            elif puntaje>=5 and puntaje<=7:
-                name_emoticon=img_emoticones[2]
-            elif puntaje==8 or puntaje == 9:
-                name_emoticon=img_emoticones[3]
+        ## Logica para el texto de resultado
+        if id_escala == 1: ## id_escala == 1 - ansiedad
+            if puntaje<=4: 
+                es_moderado_o_mas = False
             else:
-                name_emoticon=img_emoticones[4]
-        elif id_escala == 2: ## depresion
-            if puntaje<=4:
-                name_emoticon=img_emoticones[0]
-            elif puntaje==5 or puntaje == 6:
-                name_emoticon=img_emoticones[1]
-            elif puntaje>=7 and puntaje<=10:
-                name_emoticon=img_emoticones[2]
-            elif puntaje>=11 and puntaje <= 13:
-                name_emoticon=img_emoticones[3]
+                es_moderado_o_mas = True
+        elif id_escala == 2: ## id_escala == 2 - depresion
+            if puntaje<=6:
+                es_moderado_o_mas = False
             else:
-                name_emoticon=img_emoticones[4]
+                es_moderado_o_mas = True
         else: ## id_escala == 3 - estres
-            if puntaje<=7:
-                name_emoticon=img_emoticones[0]
-            elif puntaje==8 or puntaje == 9:
-                name_emoticon=img_emoticones[1]
-            elif puntaje>=10 and puntaje<=12:
-                name_emoticon=img_emoticones[2]
-            elif puntaje>=13 and puntaje <= 16:
-                name_emoticon=img_emoticones[3]
+            if puntaje<=9:
+                es_moderado_o_mas = False
             else:
-                name_emoticon=img_emoticones[4]
+                es_moderado_o_mas = True
 
-        url_emoticon = url_for('static', filename='imagenes/' + name_emoticon)
         return render_template('resultado_test.html',
                                 actividades=actividades,
                                 resultado_test=resultado_test,
-                                url_emoticon=url_emoticon)
+                                es_moderado_o_mas=es_moderado_o_mas)
     else:
         return redirect(url_for('login'))
 

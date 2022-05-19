@@ -25,16 +25,19 @@ endblock title %} {% block content %} {% with messages = get_flashed_messages()
 <div class="resultado_test p-2">
   <h1>Resultado del test de {{ resultado_test['nom_variable'] }}:</h1>
   <div class="row d-flex align-items-center">
-    <p class="col-4">Se obtuvo {{ resultado_test['puntaje'] }} de puntaje.</p>
-    <img
-      src="{{url_emoticon}}"
-      alt="Img Resultado"
-      class="col-auto"
-      width="90"
-      height="90"
-    />
+    <p>Se obtuvo {{ resultado_test['puntaje'] }} de puntaje.</p>
   </div>
-  <p>Y el resultado es {{ resultado_test['nivel_variable'] }}.</p>
+  {% if es_moderado_o_mas %}
+  <p>
+    De acuerdo a los resultados obtenidos en el test se le recomienda ponerse en
+    contacto con un psicólogo. Para solicitar una cita
+    <a href="{{ url_for('buscar_cita') }}">ingrese aquí.</a>
+  </p>
+  {% else %}
+  <p>
+    Usted no presenta un nivel que requiere la intervención de un psicólogo.
+  </p>
+  {% endif %}
 </div>
 {% if actividades %}
 <h2>Se recomienda las siguientes actividades:</h2>
