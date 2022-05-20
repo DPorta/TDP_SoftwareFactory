@@ -27,19 +27,23 @@ import clasificacion_texto
 #from pymysql import NULL
 
 app = Flask(__name__)
+
 # Conexion a sql
-app.config['MYSQL_HOST'] = '127.0.0.1'
-#app.config['MYSQL_HOST'] = 'localhost'
+#app.config['MYSQL_HOST'] = '127.0.0.1'
+app.config['MYSQL_HOST'] = 'localhost'
 #app.config['MYSQL_HOST'] = 'bdwumf34burl3arg3wug-mysql.services.clever-cloud.com'
 
 app.config['MYSQL_USER'] = 'root'
 # app.config['MYSQL_USER'] = 'u8wtjekkvx6ew9di'
+
 app.config['MYSQL_PASSWORD'] = ''
 # app.config['MYSQL_PASSWORD'] = 'dQVujvVE1krN6iBoLBDi'
+
 # Nombre de la BD en phpmyadmin
-app.config['MYSQL_DB'] = '2021213_DB_SINHERENCIA'
-# app.config['MYSQL_DB'] = 'tdp_sw_s6'
+#app.config['MYSQL_DB'] = '2021213_DB_SINHERENCIA'
+app.config['MYSQL_DB'] = 'tdp_sw_s6'
 # app.config['MYSQL_DB'] = 'bdwumf34burl3arg3wug'
+
 # CURSOR
 app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 mysql = MySQL(app)
@@ -457,10 +461,12 @@ def registrar_cita():
 
 # Buscar y Listar cita
 @app.route('/buscar_cita', methods=['GET','POST'])
-def buscar_cita():
-    error=None
+def buscar_cita(error=None):
+    #error=None
     if is_logged():
+        a = session['usuario']
         resultado_cita = []
+        cur = mysql.connection.cursor()
 
         if request.method == 'POST':
             fecha = request.form['fecha']
@@ -472,7 +478,6 @@ def buscar_cita():
                 h_inicio = datetime.timedelta(hours=hora)
                 h_fin = datetime.timedelta(hours=hora + 1)
 
-                cur = mysql.connection.cursor()
                 cur.execute("""
                     SELECT p.nombres , h.* 
                     FROM `horario` h,
@@ -485,16 +490,7 @@ def buscar_cita():
                 """, 
                 [fecha, h_inicio, h_fin])
                 resultado_cita = cur.fetchall()
-                cur.close()
-                return render_template('buscar_cita.html', 
-                                hora_citas=hora_citas, 
-                                resultado_cita=resultado_cita,
-                                error=error,
-                                fecha=fecha,
-                                hora=hora)
-
-        
-        cur = mysql.connection.cursor()
+                 
         cur.execute("""
             SELECT p.nombres , h.* 
             FROM `horario` h,
@@ -510,7 +506,6 @@ def buscar_cita():
                                 resultado_cita=resultado_cita,
                                 error=error)
     else:
-        print('no usuario')
         return redirect(url_for('login'))
 
 # Buscar actividades
@@ -518,7 +513,8 @@ def buscar_cita():
 def buscar_actividad():
     if is_logged():
         actividades = []
-        if request.method == 'POST':
+        a = session['usuario']
+        if request.method == 'POST' and is_logged():
             variable = request.form['variable']
 
             cur = mysql.connection.cursor()
@@ -662,7 +658,8 @@ def test_psicologico_main():
 def test_ansiedad():
     if is_logged():
         error = None
-        if request.method == 'POST':
+        a = session['usuario']
+        if request.method == 'POST' and is_logged():
 
             id_alumno= session['usuario']['id_alumno']
 
@@ -725,6 +722,7 @@ def test_ansiedad():
 def test_depresion():
     if is_logged():
         error = None
+        a = session['usuario']
         if request.method == 'POST':
 
             id_alumno= session['usuario']['id_alumno']
@@ -791,6 +789,7 @@ def test_depresion():
 def test_estres():
     if is_logged():
         error = None
+        a = session['usuario']
         if request.method == 'POST':
 
             id_alumno= session['usuario']['id_alumno']
@@ -1236,8 +1235,9 @@ def registro_psi():
 
 @app.route('/logout')
 def logout():
+    session.pop('usuario', None)
     session.clear()
-    return redirect('/login')
+    return redirect(url_for('login'))
 
 @app.route('/login', methods=["GET", "POST"])
 def login():
